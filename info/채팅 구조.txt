@@ -1,0 +1,51 @@
+📁 pages/
+└── ChatPage.jsx                   # 채팅 페이지 (BasicLayout + ChatComponent)
+
+📁 components/chat/
+├── ChatComponent.jsx              # 채팅 진입점 (사용자명 입력 → 채팅방 진입)
+├── ChatRoom.jsx                   # 메인 채팅방 레이아웃 (사이드바 + 채팅영역)
+├── MessageList.jsx                # 메시지 리스트 표시 및 자동스크롤
+├── MessageInput.jsx               # 메시지 입력 (이모지 + 텍스트 영역)
+└── UserList.jsx                   # 온라인 사용자 목록 표시
+
+📁 hooks/
+└── useWebSocket.jsx               # WebSocket 연결 관리 (STOMP 클라이언트)
+
+📁 src/
+└── index.css                      # 채팅 메시지 스타일링
+    ├── .chat-message              # 기본 메시지 스타일
+    ├── .chat-message.own          # 내 메시지 (파란색)
+    ├── .chat-message.other        # 타인 메시지 (흰색)
+    ├── .chat-message.system       # 시스템 메시지 (초록색)
+    └── 스크롤바 커스텀 스타일
+
+📁 controller/
+├── ChatController.java            # WebSocket 메시지 처리 메인 컨트롤러
+│   ├── @MessageMapping("/chat.sendMessage")     # 채팅 메시지 처리
+│   ├── @MessageMapping("/chat.addUser")         # 사용자 입장 처리
+│   └── @EventListener SessionDisconnectEvent   # 사용자 퇴장 처리
+└── ChatRestController.java        # REST API (채팅방/사용자 목록용)
+
+📁 dto/
+└── ChatMessage.java               # 채팅 메시지 데이터 전송 객체
+    ├── MessageType enum           # CHAT, JOIN, LEAVE
+    ├── content, sender, timestamp
+    └── 생성자 및 타임스탬프 자동 생성
+
+📁 config/
+├── WebSocketConfig.java           # WebSocket & STOMP 설정
+│   ├── registerStompEndpoints()   # "/ws" 엔드포인트 등록
+│   └── configureMessageBroker()   # 메시지 브로커 설정
+└── WebSocketEventListener.java    # 사용자 세션 관리 (현재 미사용)
+
+package.json
+{
+  "@stomp/stompjs": "WebSocket STOMP 클라이언트",
+  "sockjs-client": "SockJS fallback 라이브러리"
+}
+
+build.gradle
+implementation 'org.springframework:spring-websocket
+implementation 'org.springframework:spring-messaging
+
+

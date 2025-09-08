@@ -1,0 +1,6 @@
+로그인, 게시판
+
+member table create_date 삭제
+member table modified_date notnull 해제
+member table address 삭제
+member table postalCode, detailAddress 추가

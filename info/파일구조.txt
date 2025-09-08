@@ -1,0 +1,65 @@
+폴더명 : 소문자시작
+파일명 : 대문자시작 카멜표기법
+
+프론트
+src
+├─ common			# 공통화면
+│   ├─components		# 공통출력 ex: 모달창
+│   │
+│   ├─config			# 공통 변수
+│   │
+│   └─menus			# header,footer
+│
+│
+├─ domain
+│   ├─ main			# 메인페이지
+│   │
+│   └─ member
+│       ├─ api			# 멤버 관련 api
+│       │
+│       ├─ join
+│       │   ├─ components
+│       │   │     └─ partials	# 상세 컴포넌트
+│       │   └─ pages
+│       │     
+│       ├─ login
+│       │   ├─ components
+│       │   │     
+│       │   ├─ hooks
+│       │   │     
+│       │   ├─ slice
+│       │   │
+│       │   └─ pages    
+│       │
+│       ├─ mypage
+│       │   ├─ components
+│       │   │     └─ partials	# 상세 컴포넌트
+│       │   └─ pages
+│       │
+│       │
+│       └─ util			# member 관련 유틸 함수
+│
+├─ layouts
+├─ router
+└─ main.jsx, store.jsx, index.css
+
+백
+main
+├─ .....mallapi
+│   ├─ domain  			
+│   │   └─ member
+│   │	     ├─ controller
+│   │	     ├─ dto
+│   │	     ├─ entity
+│   │	     ├─ repository
+│   │	     └─ service
+│   │
+│   ├─ global 			# 전역
+│   │	     ├─ config
+│   │	     ├─ exception
+│   │	     ├─ security
+│   │	     └─ util
+│   │
+│   └─ MallapiApplication.java
+│
+└─ resources

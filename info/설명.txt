@@ -1,0 +1,17 @@
+회원가입시 통상 휴대폰인증을 하게됨
+- 사업자 등록증 필요 
+
+JoinComponent (기본 레이아웃)
+└── JoinForm (메인 로직)
+    ├── EmailSection
+    ├── PasswordSection
+    ├── NicknameSection
+    └── AddressSection
+
+MyPageComponent (기본 레이아웃)
+└── MyPageForm (메인 로직)
+    ├── MyPageInfo (조회 모드)
+    └── MyPageEdit (편집 모드)
+        ├── ProfileSection
+        ├── PasswordSection
+        └── AddressSection (재사용!)

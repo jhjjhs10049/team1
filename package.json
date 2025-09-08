@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "swiper": "^11.2.10",
+    "@stomp/stompjs": "WebSocket STOMP 클라이언트",
+    "sockjs-client": "SockJS fallback 라이브러리"
+  }
+}

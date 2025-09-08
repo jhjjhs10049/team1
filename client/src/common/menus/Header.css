@@ -1,0 +1,39 @@
+/* Header 반응형 CSS */
+@media (min-width: 801px) {
+  .mobile-menu {
+    display: none !important;
+  }
+  .mobile-header {
+    display: none !important;
+  }
+  .desktop-menu {
+    display: flex !important;
+  }
+}
+
+@media (max-width: 800px) {
+  .mobile-menu {
+    display: block !important;
+  }
+  .mobile-header {
+    display: flex !important;
+  }
+  .desktop-menu {
+    display: none !important;
+  }
+}
+
+/* 모바일 메뉴 애니메이션 개선 */
+.mobile-menu {
+  transition: all 0.3s ease-in-out;
+}
+
+.mobile-menu.open {
+  max-height: 400px;
+  opacity: 1;
+}
+
+.mobile-menu.closed {
+  max-height: 0;
+  opacity: 0;
+}
