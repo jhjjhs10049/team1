@@ -53,8 +53,18 @@ const BasicMenu = () => {
             {/* 왼쪽 영역 */}
             <div className="flex-1 flex justify-start">
               <div className="flex items-center py-4 text-white">
+                {" "}
                 <div className="pr-6 cursor-pointer font-bold text-lg">
                   <Link to="/">FitHub</Link>
+                </div>
+                <div className="pr-6 hover:underline cursor-pointer text-base">
+                  <Link to="/gyms">헬스장</Link>
+                </div>
+                <div className="pr-6 hover:underline cursor-pointer text-base">
+                  <Link to="/trainers">트레이너</Link>
+                </div>
+                <div className="pr-6 hover:underline cursor-pointer text-base">
+                  <Link to="/scheduler">스케줄</Link>
                 </div>
                 <div className="pr-6 hover:underline cursor-pointer text-base">
                   <Link to="/board">게시판</Link>
@@ -142,8 +152,30 @@ const BasicMenu = () => {
             isMobileMenuOpen ? "open" : "closed"
           }`}
         >
+          {" "}
           <div className="px-4 py-2 space-y-1">
             {/* 왼쪽 영역 메뉴들 */}
+            <Link
+              to="/gyms"
+              onClick={closeMobileMenu}
+              className="block px-3 py-2 text-white hover:bg-gray-600 rounded-md transition-colors"
+            >
+              헬스장
+            </Link>
+            <Link
+              to="/trainers"
+              onClick={closeMobileMenu}
+              className="block px-3 py-2 text-white hover:bg-gray-600 rounded-md transition-colors"
+            >
+              트레이너
+            </Link>
+            <Link
+              to="/scheduler"
+              onClick={closeMobileMenu}
+              className="block px-3 py-2 text-white hover:bg-gray-600 rounded-md transition-colors"
+            >
+              스케줄
+            </Link>
             <Link
               to="/board"
               onClick={closeMobileMenu}

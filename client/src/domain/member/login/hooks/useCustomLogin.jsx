@@ -1,3 +1,4 @@
+import React, { useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate, useNavigate, createSearchParams } from "react-router-dom";
 import { loginPostAsync, logout } from "../slices/loginSlice";
@@ -33,11 +34,10 @@ const useCustomLogin = () => {
 
     return action.payload; // action 의 payload 속성을 이용해서 데이터(loginPost(param) 반환값) 를 전달 받는다.
   };
-
-  const doLogout = () => {
+  const doLogout = useCallback(() => {
     //--- 로그아웃 함수
     dispatch(logout()); // 동기 방식 호출 ( 즉시 호출됨)
-  };
+  }, [dispatch]);
 
   const moveToPath = (path) => {
     //----- 페이지 이동

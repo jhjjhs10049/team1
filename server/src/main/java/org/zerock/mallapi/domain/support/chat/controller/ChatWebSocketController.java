@@ -16,27 +16,28 @@ import org.zerock.mallapi.global.constants.WebSocketDestinations;
 public class ChatWebSocketController {
 
     private final SimpMessagingTemplate messagingTemplate;
-    private final ChatMessageService chatMessageService;
-
-    @MessageMapping("/chat/send")
+    private final ChatMessageService chatMessageService;    @MessageMapping("/chat/send")
     public void sendMessage(@Payload ChatMessageDTO messageData) {
         try {
-            log.info("📥 웹소켓 메시지 수신: {}", messageData);
+            log.info("📥 1:1 채팅 웹소켓 메시지 수신: {}", messageData);
             
             // 메시지를 데이터베이스에 저장
             ChatMessageDTO savedMessage = chatMessageService.sendMessage(
                 messageData.getChatRoomNo(), 
                 messageData.getSenderNo(), 
                 messageData.getMessage(), 
-                messageData.getMessageType()            );
-              // 1:1 채팅은 Queue 방식으로 개별 전송
+                messageData.getMessageType()
+            );
+              
+            // 1:1 채팅은 Queue 방식으로 개별 전송
             String queueDestination = WebSocketDestinations.Queue.chatMessage(messageData.getChatRoomNo());
             messagingTemplate.convertAndSend(queueDestination, savedMessage);
-              log.info("📤 웹소켓 메시지 전송 완료: 채팅방 {}, 메시지 ID {}", 
+              
+            log.info("📤 1:1 채팅 웹소켓 메시지 전송 완료: 채팅방 {}, 메시지 ID {}", 
                     messageData.getChatRoomNo(), savedMessage.getNo());
                     
         } catch (Exception e) {
-            log.error("❌ 웹소켓 메시지 처리 오류: ", e);
+            log.error("❌ 1:1 채팅 웹소켓 메시지 처리 오류: ", e);
         }
     }
 

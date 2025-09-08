@@ -89,6 +89,7 @@ const MainPage = () => {
             FitHub와 함께 내 주변 최고의 피트니스 센터를 찾아보세요.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
+            {" "}
             <button
               onClick={() => navigate("/gyms/map")}
               className="bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300"
@@ -96,10 +97,10 @@ const MainPage = () => {
               지도로 찾기
             </button>
             <button
-              onClick={() => navigate("/gyms/list")}
+              onClick={() => navigate("/trainers")}
               className="bg-gray-700 hover:bg-gray-800 text-white font-bold py-3 px-6 rounded-lg transition duration-300"
             >
-              리스트로 찾기
+              트레이너 찾기
             </button>
           </div>
         </section>
@@ -151,7 +152,7 @@ const MainPage = () => {
                   <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded font-bold mr-3">
                     공지
                   </span>
-                  <span className="flex-1">{latestNotice.title}</span>{" "}
+                  <span className="flex-1">{latestNotice.title}</span>
                   <span className="text-sm text-gray-500">
                     {formatDate(latestNotice.regDate)}
                   </span>
@@ -167,7 +168,7 @@ const MainPage = () => {
                   <span className="bg-purple-500 text-white text-xs px-2 py-1 rounded font-bold mr-3">
                     광고
                   </span>
-                  <span className="flex-1">{latestAd.title}</span>{" "}
+                  <span className="flex-1">{latestAd.title}</span>
                   <span className="text-sm text-gray-500">
                     {formatDate(latestAd.regDate)}
                   </span>

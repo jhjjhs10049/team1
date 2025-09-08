@@ -24,7 +24,7 @@ public class ChatRoomController {
 
     // 사전 질문으로부터 채팅방 생성
     @PostMapping("/create-from-question")
-    @PreAuthorize("hasRole('USER')")
+    
     public ResponseEntity<ChatRoomDTO> createChatRoomFromQuestion(
             @RequestBody Map<String, String> request,
             @AuthenticationPrincipal MemberDTO memberDTO) {
@@ -43,7 +43,7 @@ public class ChatRoomController {
 
     // 회원의 활성화된 채팅방 조회
     @GetMapping("/active")
-    @PreAuthorize("hasRole('USER')")
+    
     public ResponseEntity<ChatRoomDTO> getActiveChatRoom(@AuthenticationPrincipal MemberDTO memberDTO) {
         
         log.info("활성화된 채팅방 조회 요청 - memberNo: {}", memberDTO.getMemberNo());
@@ -61,7 +61,7 @@ public class ChatRoomController {
 
     // 회원의 모든 채팅방 목록 조회
     @GetMapping("/my")
-    @PreAuthorize("hasRole('USER')")
+    
     public ResponseEntity<List<ChatRoomDTO>> getMyChatRooms(@AuthenticationPrincipal MemberDTO memberDTO) {
         
         log.info("내 채팅방 목록 조회 요청 - memberNo: {}", memberDTO.getMemberNo());

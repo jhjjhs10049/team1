@@ -96,7 +96,7 @@ const FAQItem = ({ faq, isAdmin, onEdit, onDelete }) => {
               <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between text-sm text-gray-500">
                 <span>
                   작성자: {faq.writerNickname} ({faq.writerRoleCode})
-                </span>{" "}
+                </span>
                 <span>
                   작성일: {formatDate(faq.createdAt)}
                   {faq.updatedAt !== faq.createdAt && (

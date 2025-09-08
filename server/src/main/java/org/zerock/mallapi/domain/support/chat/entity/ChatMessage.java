@@ -8,6 +8,8 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "chat_message")
+@org.hibernate.annotations.DynamicInsert
+@org.hibernate.annotations.DynamicUpdate
 @Getter
 @Builder
 @AllArgsConstructor
@@ -25,9 +27,7 @@ public class ChatMessage {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_no")
-    private Member sender; // 메시지 발신자
-
-    @Column(name = "message", length = 1000, nullable = false)
+    private Member sender; // 메시지 발신자    @Column(name = "message", length = 1000, nullable = false, columnDefinition = "TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
     private String message; // 메시지 내용
 
     @Enumerated(EnumType.STRING)

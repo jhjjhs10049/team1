@@ -22,11 +22,9 @@ public class ChatMessageServiceImpl implements ChatMessageService {
 
     private final ChatMessageRepository chatMessageRepository;
     private final ChatRoomRepository chatRoomRepository;
-    private final MemberRepository memberRepository;
-
-    @Override
+    private final MemberRepository memberRepository;    @Override
     public ChatMessageDTO sendMessage(Long chatRoomNo, Long senderNo, String message, ChatMessage.MessageType messageType) {
-        log.info("메시지 전송 - roomNo: {}, senderNo: {}, messageType: {}", chatRoomNo, senderNo, messageType);
+        log.info("1:1 채팅 메시지 전송 - roomNo: {}, senderNo: {}, messageType: {}", chatRoomNo, senderNo, messageType);
 
         // 채팅방 조회
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomNo)
@@ -47,7 +45,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                 .build();
 
         ChatMessage savedMessage = chatMessageRepository.save(chatMessage);
-        log.info("메시지 전송 완료 - messageNo: {}", savedMessage.getNo());
+        log.info("1:1 채팅 메시지 전송 완료 - messageNo: {}", savedMessage.getNo());
 
         return entityToDTO(savedMessage);
     }

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import websocketService from "../../domain/support/chat/services/websocketService";
+import websocketService from "../../domain/global/service/websocketService";
 import { WEBSOCKET_DESTINATIONS } from "../../domain/global/constants/websocketDestinations";
 import useCustomLogin from "../../domain/member/login/hooks/useCustomLogin";
 
@@ -8,6 +8,9 @@ import useCustomLogin from "../../domain/member/login/hooks/useCustomLogin";
  */
 const useForcedLogoutListener = () => {
   const { loginState, doLogout } = useCustomLogin();
+
+  // memberNo 안정적으로 추출
+  const memberNo = loginState?.memberNo;
 
   // 웹소켓 재연결 실패로 인한 강제 로그아웃 처리
   useEffect(() => {
@@ -34,11 +37,9 @@ const useForcedLogoutListener = () => {
       window.removeEventListener("forceLogout", handleForceLogout);
     };
   }, [doLogout]);
-
   useEffect(() => {
-    if (!loginState?.memberNo) return;
+    if (!memberNo) return;
 
-    const memberNo = loginState.memberNo;
     const destination = WEBSOCKET_DESTINATIONS.QUEUE.MEMBER_LOGOUT(memberNo);
 
     console.log("🚨 강제 로그아웃 알림 구독 시작:", destination); // 웹소켓 연결 확인 및 구독
@@ -106,7 +107,7 @@ const useForcedLogoutListener = () => {
       console.log("🚨 강제 로그아웃 알림 구독 해제:", destination);
       websocketService.unsubscribe(destination);
     };
-  }, [loginState?.memberNo, doLogout]);
+  }, [memberNo, doLogout]);
   // 사용자 친화적인 로그아웃 알림 표시
   const showLogoutAlert = (message, onConfirm, changeType) => {
     // 변경 타입에 따른 아이콘과 색상 설정

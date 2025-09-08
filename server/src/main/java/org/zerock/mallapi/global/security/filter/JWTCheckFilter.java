@@ -48,9 +48,9 @@ public class JWTCheckFilter extends OncePerRequestFilter {
            path.equals("/api/member/refresh") ||
            path.startsWith("/api/member/check-") ||
            // ❌ 제거: verify-password, withdraw는 인증 필요
-           
-           // 기타 공개 API
+                // 기타 공개 API
            path.startsWith("/api/gyms") || 
+           path.startsWith("/api/trainers") || 
            path.equals("/login") ||
            // 웹소켓 연결 경로 제외
            path.startsWith("/ws")) {
@@ -62,7 +62,7 @@ public class JWTCheckFilter extends OncePerRequestFilter {
         if(path.startsWith("/api/files") && "GET".equals(method)) {
             log.debug("JWT filter excluded (file access): {}", path);
             return true;
-        }// /api/support의 GET 요청 중 공개 API만 체크하지 않음 (FAQ 조회)
+        }        // /api/support의 GET 요청 중 공개 API만 체크하지 않음 (FAQ 조회)
         if(path.startsWith("/api/support") && "GET".equals(method)) {
             // 개인 정보 관련 요청은 인증 필요
             if(path.contains("/my") || 
@@ -74,7 +74,20 @@ public class JWTCheckFilter extends OncePerRequestFilter {
             }
             log.debug("JWT filter excluded (FAQ access): {}", path);
             return true;
-        }        
+        }
+
+        // /api/multchat의 GET 요청 중 공개 API만 체크하지 않음
+        if(path.startsWith("/api/multchat") && "GET".equals(method)) {
+            // 개인 정보 관련 요청은 인증 필요
+            if(path.contains("/my") || 
+               path.contains("/messages") ||
+               path.matches("/api/multchat/rooms/\\d+/?$")) { // 특정 채팅방 상세 조회는 인증 필요
+                log.debug("JWT filter applied (private multchat access): {}", path);
+                return false; // 개인 정보 관련은 JWT 체크 필요
+            }
+            log.debug("JWT filter excluded (public multchat access): {}", path);
+            return true;
+        }
         // /api/board의 GET 요청만 체크하지 않음 (목록 조회, 상세 조회, 댓글 조회)
         if(path.startsWith("/api/board") && "GET".equals(method)) {
             log.debug("JWT filter excluded (board access): {}", path);

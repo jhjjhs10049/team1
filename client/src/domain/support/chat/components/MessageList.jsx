@@ -88,22 +88,20 @@ const MessageList = ({ messages, currentUserNickname, chatRoom }) => {
                 )}
               </div>
             )}
-
             {/* 메시지 버블 */}
             <div
-              className={`max-w-xs lg:max-w-md xl:max-w-lg ${
+              className={`max-w-[250px] sm:max-w-xs lg:max-w-md xl:max-w-lg ${
                 isOwn
                   ? "bg-teal-500 text-white rounded-l-lg rounded-tr-lg"
                   : isAdmin
                   ? "bg-green-100 text-green-800 rounded-r-lg rounded-tl-lg border border-green-200"
                   : "bg-gray-100 text-gray-800 rounded-r-lg rounded-tl-lg"
-              } px-4 py-2 shadow-sm`}
+              } px-3 py-2 sm:px-4 sm:py-2 shadow-sm`}
             >
               <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
                 {message.message}
               </p>
             </div>
-
             {/* 시간 */}
             <div
               className={`text-xs text-gray-500 mt-1 ${
@@ -111,9 +109,6 @@ const MessageList = ({ messages, currentUserNickname, chatRoom }) => {
               }`}
             >
               {formatTime(message.sentAt)}
-              {isOwn && message.readStatus === "Y" && (
-                <span className="ml-1 text-teal-500">✓</span>
-              )}
             </div>
           </div>
         </div>
@@ -154,11 +149,11 @@ const MessageList = ({ messages, currentUserNickname, chatRoom }) => {
       ref={messageContainerRef}
       className="flex-1 overflow-y-auto bg-gray-50"
     >
-      <div className="p-4 space-y-4">
+      <div className="p-2 sm:p-4 space-y-4">
         {/* 채팅 시작 안내 메시지 */}
-        <div className="flex justify-center mb-6">
-          <div className="bg-teal-100 text-teal-700 px-4 py-2 rounded-lg text-sm">
-            <div className="flex items-center space-x-2">
+        <div className="flex justify-center mb-4 sm:mb-6">
+          <div className="bg-teal-100 text-teal-700 px-3 py-2 sm:px-4 rounded-lg text-sm max-w-[90%] text-center">
+            <div className="flex items-center justify-center space-x-2">
               <span>💬</span>
               <span>1대1 상담이 시작되었습니다.</span>
             </div>

@@ -301,7 +301,7 @@ const AdminMemberManager = () => {
                 </td>
                 <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                   {member.phone || "-"}
-                </td>{" "}
+                </td>
                 <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                   {member.joinedDate
                     ? new Date(member.joinedDate).toLocaleDateString()

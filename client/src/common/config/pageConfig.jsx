@@ -5,6 +5,7 @@
  * 2. REPLY_CONFIG      - 댓글 페이징 설정
  * 3. ADMIN_CONFIG      - 관리자 페이징 설정
  * 4. SEARCH_CONFIG     - 검색 페이징 설정
+ * 5. MULTCHAT_CONFIG   - 멀티채팅 페이징 설정
  */
 
 // ===== 1. 게시판 페이징 설정 =====
@@ -37,6 +38,16 @@ export const SEARCH_CONFIG = {
   DEFAULT_SIZE: 15, // 기본 페이지 크기 (검색은 많이)
   MAX_SIZE: 50, // 최대 페이지 크기
   PAGE_GROUP_SIZE: 7, // 페이지 그룹 크기
+};
+
+// ===== 5. 멀티채팅 페이징 설정 =====
+export const MULTCHAT_CONFIG = {
+  DEFAULT_PAGE: 0, // 기본 페이지 번호
+  DEFAULT_SIZE: 30, // 기본 페이지 크기 (채팅 메시지는 30개씩)
+  MAX_SIZE: 100, // 최대 페이지 크기
+  INITIAL_LOAD_SIZE: 30, // 초기 로딩 시 메시지 개수
+  INFINITE_SCROLL_SIZE: 30, // 무한스크롤 시 추가 로딩 개수
+  SCROLL_THRESHOLD: 100, // 스크롤 트리거 임계값 (px)
 };
 
 // ===== 공통 유틸리티 함수 =====

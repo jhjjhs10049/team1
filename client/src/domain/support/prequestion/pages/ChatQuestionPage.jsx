@@ -110,7 +110,7 @@ const ChatQuestionPage = () => {
                             </div>
                             <div>
                               <strong>문의 내용:</strong> {question.q2}
-                            </div>{" "}
+                            </div>
                             <div className="text-gray-500">
                               작성일:
                               {question.createdAt

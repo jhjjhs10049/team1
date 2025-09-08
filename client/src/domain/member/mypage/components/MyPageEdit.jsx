@@ -65,7 +65,7 @@ const MyPageEdit = ({
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           가입일
-        </label>{" "}
+        </label>
         <div className="w-full p-3 bg-gray-50 rounded-md border border-gray-300">
           {formatDate(memberData.joinedDate)}
         </div>

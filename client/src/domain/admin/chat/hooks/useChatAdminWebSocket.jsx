@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import websocketService from "../../../support/chat/services/websocketService";
+import websocketService from "../../../global/service/websocketService";
 import { WEBSOCKET_DESTINATIONS } from "../../../global/constants/websocketDestinations";
 import useCustomLogin from "../../../member/login/hooks/useCustomLogin";
 

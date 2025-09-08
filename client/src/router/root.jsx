@@ -8,6 +8,14 @@ import { AdminManagerComponent } from "../common/config/ProtectedAdmin";
 import boardRouter from "./boardRouter";
 // support
 import supportRouter from "./supportRouter";
+// multchat
+import multchatRouter from "./multChatRouter";
+// gyms
+import gymsRouter from "./gymsRouter";
+// scheduler
+import schedulerRouter from "./schedulerRouter";
+// trainers
+import trainersRouter from "./trainersRouter";
 
 // page
 
@@ -75,11 +83,29 @@ const root = createBrowserRouter([
   {
     path: "board",
     children: boardRouter(),
-  },
-  // support
+  }, // support
   {
     path: "support",
     children: supportRouter(),
+  }, // multchat
+  {
+    path: "multchat",
+    children: multchatRouter(),
+  },
+  // gyms
+  {
+    path: "gyms",
+    children: gymsRouter(),
+  },
+  // scheduler
+  {
+    path: "scheduler",
+    children: schedulerRouter(),
+  },
+  // trainers
+  {
+    path: "trainers",
+    children: trainersRouter(),
   },
 
   // 404 에러 처리 (모든 경로의 맨 마지막에 배치)

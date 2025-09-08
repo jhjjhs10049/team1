@@ -74,12 +74,35 @@ public class CustomSecurityConfig {
                 
                 // 파일 API - 업로드는 인증 필요, 조회는 공개
                 .requestMatchers(GET, "/api/files/**").permitAll() // 파일 조회만 허용
-                .requestMatchers("/api/files/**").authenticated() // 파일 업로드는 인증 필요
-                  // Support API
+                .requestMatchers("/api/files/**").authenticated() // 파일 업로드는 인증 필요                // Support API
                 .requestMatchers(GET, "/api/support/faq/**").permitAll() // FAQ 조회 허용
-                .requestMatchers("/api/support/faq/**").hasAnyRole("ADMIN", "MANAGER") // FAQ 관리는 관리자만                .requestMatchers("/api/support/chat-question/**").authenticated() // 채팅 질문은 로그인 필요
+                .requestMatchers("/api/support/faq/**").hasAnyRole("ADMIN", "MANAGER") // FAQ 관리는 관리자만
+                .requestMatchers("/api/support/chat-question/**").authenticated() // 채팅 질문은 로그인 필요
                 .requestMatchers("/api/support/chat-room/**").authenticated() // 채팅방은 로그인 필요
                 .requestMatchers("/api/support/chat-message/**").authenticated() // 채팅 메시지는 로그인 필요
+                  // Gym API - 조회는 공개, 리뷰/즐겨찾기는 인증 필요
+                .requestMatchers(GET, "/api/gyms").permitAll() // 헬스장 목록 조회
+                .requestMatchers(GET, "/api/gyms/*").permitAll() // 헬스장 상세 조회
+                .requestMatchers(GET, "/api/gyms/*/reviews").permitAll() // 리뷰 조회는 공개
+                .requestMatchers("/api/gyms/*/reviews").authenticated() // 리뷰 작성/삭제는 인증 필요
+                .requestMatchers("/api/gyms/*/favorite").authenticated() // 즐겨찾기는 인증 필요
+                .requestMatchers("/api/gyms/favorites/**").authenticated() // 즐겨찾기 목록은 인증 필요                // Trainer API - 조회는 공개, 리뷰는 인증 필요
+                .requestMatchers(GET, "/api/trainers").permitAll() // 트레이너 목록 조회
+                .requestMatchers(GET, "/api/trainers/*").permitAll() // 트레이너 상세 조회
+                .requestMatchers(GET, "/api/trainers/*/reviews").permitAll() // 리뷰 조회는 공개
+                .requestMatchers("/api/trainers/*/reviews").authenticated() // 리뷰 작성/삭제는 인증 필요
+                
+                // Schedule API - 모든 기능 인증 필요 (개인 일정)
+                .requestMatchers("/api/schedules/**").authenticated()
+                .requestMatchers("/api/routines/**").authenticated() 
+                .requestMatchers("/api/stats/**").authenticated()
+                .requestMatchers("/api/weekly-goal/**").authenticated()
+                
+                // MultChat API - 조회는 일부 공개, 참여는 인증 필요
+                .requestMatchers(GET, "/api/multchat/rooms").permitAll() // 채팅방 목록 조회 
+                .requestMatchers(GET, "/api/multchat/rooms/popular").permitAll() // 인기 채팅방 조회
+                .requestMatchers(GET, "/api/multchat/rooms/recent").permitAll() // 최근 채팅방 조회
+                .requestMatchers("/api/multchat/**").authenticated() // 나머지는 인증 필요
                 
                 .anyRequest().authenticated(); // 나머지는 인증 필요
         });        
@@ -114,27 +137,29 @@ public class CustomSecurityConfig {
         });
 
         return http.build();
-    }
-
-    @Bean
+    }    @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
         CorsConfiguration configuration = new CorsConfiguration();
 
         configuration.setAllowedOriginPatterns(Arrays.asList("*"));
         configuration.setAllowedMethods(
-                Arrays.asList("HEAD", "GET", "POST", "PUT", "DELETE"));
+                Arrays.asList("HEAD", "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(
+                Arrays.asList("Authorization", "Cache-Control", "Content-Type", "X-Requested-With", "Accept", "Origin")
+        );
+        configuration.setExposedHeaders(
                 Arrays.asList("Authorization", "Cache-Control", "Content-Type")
         );
 
         configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L); // 1시간 동안 preflight 결과 캐시
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
 
         return source;
-    }    
+    }
     
     @Bean
     public PasswordEncoder passwordEncoder(){

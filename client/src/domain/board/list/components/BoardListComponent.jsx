@@ -79,7 +79,7 @@ const BoardListComponent = ({
                         >
                           {notice.title}
                         </h3>
-                      </div>{" "}
+                      </div>
                       <span className="text-sm text-gray-500">
                         {formatDate(notice.regDate)}
                       </span>
@@ -161,7 +161,7 @@ const BoardListComponent = ({
               <div className="flex justify-between items-start mb-2">
                 <h3 className="text-lg font-semibold text-gray-800 group-hover:text-teal-600 transition-colors">
                   {board.title}
-                </h3>{" "}
+                </h3>
                 <span className="text-sm text-gray-500">
                   {formatDate(board.regDate)}
                 </span>
