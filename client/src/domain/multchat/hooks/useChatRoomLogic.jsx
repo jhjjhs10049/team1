@@ -53,23 +53,33 @@ const useChatRoomLogic = () => {
     isWebSocketConnected
   ); // 실시간 메시지 구독
   useMessageSubscription(roomNo, isWebSocketConnected, addMessage);
-
-  // 채팅방 정보 로드
+  // 채팅방 정보 로드 및 웹소켓 연결 대기
   useEffect(() => {
     const loadRoomInfo = async () => {
       if (!roomNo) return;
       try {
+        setLoading(true);
         const data = await getChatRoomDetail(roomNo);
         setLocalRoomInfo(data);
         setWsRoomInfo(data);
+
+        // 웹소켓 연결이 완료될 때까지 대기
+        console.log("⏳ 웹소켓 연결 대기 중...");
       } catch (error) {
         console.error("❌ 채팅방 정보 로드 실패:", error);
-      } finally {
         setLoading(false);
       }
     };
     loadRoomInfo();
-  }, [roomNo, setWsRoomInfo, loginState]); // 사용자 입장/퇴장 알림 개선
+  }, [roomNo, setWsRoomInfo, loginState]);
+
+  // 웹소켓 연결 완료 후 로딩 해제
+  useEffect(() => {
+    if (isWebSocketConnected && roomInfo) {
+      console.log("✅ 웹소켓 연결 완료 - 채팅방 입장 가능");
+      setLoading(false);
+    }
+  }, [isWebSocketConnected, roomInfo]); // 사용자 입장/퇴장 알림 개선
   useEffect(() => {
     if (isWebSocketConnected && roomNo && username && loginState) {
       console.log("🚪 채팅방 입장 알림 전송:", { roomNo, username });

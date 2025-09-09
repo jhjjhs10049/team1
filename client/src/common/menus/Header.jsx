@@ -48,12 +48,12 @@ const BasicMenu = () => {
     <>
       <nav id="navbar" className="bg-gray-700 w-full relative" ref={menuRef}>
         <div className="flex max-w-7xl mx-auto px-4 sm:px-6">
-          {/* 데스크톱 메뉴 - 800px 이상에서만 표시 */}
+          {" "}
+          {/* 데스크톱 메뉴 - 1025px 이상에서만 표시 */}
           <div className="desktop-menu hidden w-full items-center">
             {/* 왼쪽 영역 */}
             <div className="flex-1 flex justify-start">
               <div className="flex items-center py-4 text-white">
-                {" "}
                 <div className="pr-6 cursor-pointer font-bold text-lg">
                   <Link to="/">FitHub</Link>
                 </div>
@@ -94,6 +94,9 @@ const BasicMenu = () => {
                     <div className="pl-6 hover:underline cursor-pointer text-base">
                       <Link to={"/member/mypage"}>마이페이지</Link>
                     </div>
+                    <div className="pl-6 hover:underline cursor-pointer text-base">
+                      <Link to={"/gyms/favorites"}>즐겨찾기</Link>
+                    </div>
                   </>
                 )}
                 <div className="pl-6 hover:underline cursor-pointer text-base">
@@ -106,11 +109,11 @@ const BasicMenu = () => {
                 </AdminManagerLink>
               </div>
             </div>
-          </div>
-          {/* 모바일 헤더 - 800px 미만에서만 표시 */}
-          <div className="mobile-header hidden justify-between items-center w-full py-3">
+          </div>{" "}
+          {/* 모바일 헤더 - 1024px 이하에서만 표시 */}
+          <div className="mobile-header hidden justify-between items-center w-full py-4">
             {/* 로고/브랜드 - 왼쪽 정렬 */}
-            <div className="text-white font-bold text-lg flex-shrink-0">
+            <div className="text-white font-bold text-xl flex-shrink-0">
               <Link to="/" onClick={closeMobileMenu}>
                 FitHub
               </Link>
@@ -152,67 +155,58 @@ const BasicMenu = () => {
             isMobileMenuOpen ? "open" : "closed"
           }`}
         >
-          {" "}
-          <div className="px-4 py-2 space-y-1">
+          <div className="px-4 py-3 space-y-1">
             {/* 왼쪽 영역 메뉴들 */}
             <Link
               to="/gyms"
               onClick={closeMobileMenu}
-              className="block px-3 py-2 text-white hover:bg-gray-600 rounded-md transition-colors"
+              className="block px-4 py-3 text-white hover:bg-gray-600 rounded-md transition-colors"
             >
               헬스장
             </Link>
             <Link
               to="/trainers"
               onClick={closeMobileMenu}
-              className="block px-3 py-2 text-white hover:bg-gray-600 rounded-md transition-colors"
+              className="block px-4 py-3 text-white hover:bg-gray-600 rounded-md transition-colors"
             >
               트레이너
             </Link>
             <Link
               to="/scheduler"
               onClick={closeMobileMenu}
-              className="block px-3 py-2 text-white hover:bg-gray-600 rounded-md transition-colors"
+              className="block px-4 py-3 text-white hover:bg-gray-600 rounded-md transition-colors"
             >
               스케줄
             </Link>
             <Link
               to="/board"
               onClick={closeMobileMenu}
-              className="block px-3 py-2 text-white hover:bg-gray-600 rounded-md transition-colors"
+              className="block px-4 py-3 text-white hover:bg-gray-600 rounded-md transition-colors"
             >
               게시판
             </Link>
             <Link
               to="/multchat"
               onClick={closeMobileMenu}
-              className="block px-3 py-2 text-white hover:bg-gray-600 rounded-md transition-colors"
+              className="block px-4 py-3 text-white hover:bg-gray-600 rounded-md transition-colors"
             >
               채팅
             </Link>
-            <AdminManagerLink
-              to="/admin/member"
-              onClick={closeMobileMenu}
-              className="block px-3 py-2 text-white hover:bg-gray-600 rounded-md transition-colors"
-            >
-              회원관리
-            </AdminManagerLink>
             {/* 구분선 */}
-            <hr className="border-gray-600 my-2" />
-            {/* 오른쪽 영역 메뉴들 */}
+            <hr className="border-gray-600 my-3" /> {/* 오른쪽 영역 메뉴들 */}
             {!loginState.email ? (
               <>
                 <Link
                   to="/member/join"
                   onClick={closeMobileMenu}
-                  className="block px-3 py-2 text-white hover:bg-gray-600 rounded-md transition-colors"
+                  className="block px-4 py-3 text-white hover:bg-gray-600 rounded-md transition-colors"
                 >
                   회원가입
                 </Link>
                 <Link
                   to="/member/login"
                   onClick={closeMobileMenu}
-                  className="block px-3 py-2 text-white hover:bg-gray-600 rounded-md transition-colors"
+                  className="block px-4 py-3 text-white hover:bg-gray-600 rounded-md transition-colors"
                 >
                   로그인
                 </Link>
@@ -222,13 +216,20 @@ const BasicMenu = () => {
                 <Link
                   to="/member/mypage"
                   onClick={closeMobileMenu}
-                  className="block px-3 py-2 text-white hover:bg-gray-600 rounded-md transition-colors"
+                  className="block px-4 py-3 text-white hover:bg-gray-600 rounded-md transition-colors"
                 >
                   마이페이지
                 </Link>
+                <Link
+                  to="/gyms/favorites"
+                  onClick={closeMobileMenu}
+                  className="block px-4 py-3 text-white hover:bg-gray-600 rounded-md transition-colors"
+                >
+                  즐겨찾기
+                </Link>
                 <button
                   onClick={handleLogout}
-                  className="block w-full text-left px-3 py-2 text-white hover:bg-gray-600 rounded-md transition-colors"
+                  className="block w-full text-left px-4 py-3 text-white hover:bg-gray-600 rounded-md transition-colors"
                 >
                   로그아웃
                 </button>
@@ -237,14 +238,14 @@ const BasicMenu = () => {
             <Link
               to="/support/faq"
               onClick={closeMobileMenu}
-              className="block px-3 py-2 text-white hover:bg-gray-600 rounded-md transition-colors"
+              className="block px-4 py-3 text-white hover:bg-gray-600 rounded-md transition-colors"
             >
               고객센터
             </Link>
             <AdminManagerLink
               to="/admin/chat"
               onClick={closeMobileMenu}
-              className="block px-3 py-2 text-white hover:bg-gray-600 rounded-md transition-colors"
+              className="block px-4 py-3 text-white hover:bg-gray-600 rounded-md transition-colors"
             >
               관리자
             </AdminManagerLink>

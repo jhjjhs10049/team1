@@ -1,5 +1,6 @@
 import React, { useId } from "react";
 import { deleteGymReview } from "../api/gymApi";
+import useCustomLogin from "../../member/login/hooks/useCustomLogin";
 
 // YYYY-MM-DD HH:mm
 const formatDate = (value) => {
@@ -76,7 +77,8 @@ export const StarRating = ({ score, size = 18 }) => {
 };
 
 const ReviewList = ({ reviews, gymNo, onDeleted }) => {
-  const memberNo = localStorage.getItem("memberNo");
+  const { loginState } = useCustomLogin();
+  const memberNo = loginState?.memberNo;
 
   const handleDelete = async (reviewNo) => {
     if (!window.confirm("이 리뷰를 삭제하시겠습니까?")) return;

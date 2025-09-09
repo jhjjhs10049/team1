@@ -5,13 +5,14 @@ const ChatExitModal = ({ show, chatRoom, onConfirm, onCancel }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg p-4 md:p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+      {" "}
+      <div className="bg-white rounded-lg p-4 lg:p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-start space-x-3 mb-4">
-          <div className="w-10 h-10 md:w-12 md:h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
-            <span className="text-red-600 text-lg md:text-xl">⚠️</span>
+          <div className="w-10 h-10 lg:w-12 lg:h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <span className="text-red-600 text-lg lg:text-xl">⚠️</span>
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-2">
+            <h3 className="text-base lg:text-lg font-semibold text-gray-900 mb-2">
               {chatRoom.status === "REJECTED" || chatRoom.status === "ENDED"
                 ? "채팅방에서 나가시겠습니까?"
                 : "채팅을 종료하시겠습니까?"}

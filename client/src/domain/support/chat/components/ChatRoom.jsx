@@ -53,14 +53,13 @@ const ChatRoom = ({ chatRoomId, isAdmin = false }) => {
 
   return (
     <div className="flex h-full bg-gray-100 overflow-hidden relative">
-      {/* 모바일 사이드바 배경 오버레이 */}
+      {/* 모바일 사이드바 배경 오버레이 */}{" "}
       {isMobile && showSidebar && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={() => setShowSidebar(false)}
         />
       )}
-
       {/* 사이드바 */}
       <ChatSidebar
         chatRoom={chatRoom}
@@ -70,7 +69,6 @@ const ChatRoom = ({ chatRoomId, isAdmin = false }) => {
         onLeave={handleLeave}
         isAdmin={isAdmin}
       />
-
       {/* 메인 채팅 영역 */}
       <div className="flex-1 flex flex-col">
         {/* 모바일용 헤더 */}
@@ -98,7 +96,6 @@ const ChatRoom = ({ chatRoomId, isAdmin = false }) => {
           chatRoomStatus={chatRoom.status}
         />
       </div>
-
       {/* 나가기 확인 모달 */}
       <ChatExitModal
         show={showExitConfirm}

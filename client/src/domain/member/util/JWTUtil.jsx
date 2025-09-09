@@ -71,6 +71,10 @@ const refreshJWT = async (accessToken, refreshToken) => {
 
 //before request
 const beforeReq = (config) => {
+  console.log(
+    `🔍 JWT 인터셉터 시작: ${config.method?.toUpperCase()} ${config.url}`
+  );
+
   const memberInfo = getCookie("member");
 
   if (!memberInfo) {
@@ -79,6 +83,8 @@ const beforeReq = (config) => {
       response: { data: { error: "REQUIRE_LOGIN" } },
     });
   }
+
+  console.log("🍪 쿠키에서 member 정보 추출:", typeof memberInfo);
 
   // memberInfo가 문자열인지 객체인지 확인
   let parsedMemberInfo;
@@ -99,11 +105,13 @@ const beforeReq = (config) => {
 
   if (!accessToken) {
     console.error("JWT 인터셉터: accessToken이 없음");
+    console.log("🔍 parsedMemberInfo:", parsedMemberInfo);
     return Promise.reject({
       response: { data: { error: "NO_ACCESS_TOKEN" } },
     });
   }
 
+  console.log(`✅ JWT 토큰 추가: Bearer ${accessToken.substring(0, 20)}...`);
   config.headers.Authorization = `Bearer ${accessToken}`;
 
   return config;
@@ -204,6 +212,14 @@ const beforeRes = async (res) => {
 
 //fail response
 const responseFail = (err) => {
+  console.error("🚨 JWT 응답 실패:", {
+    url: err.config?.url,
+    method: err.config?.method,
+    status: err.response?.status,
+    statusText: err.response?.statusText,
+    data: err.response?.data,
+  });
+
   // 중요한 에러만 로깅
   if (err.response?.status === 401) {
     console.error("인증 실패:", err.config?.url); // 리프레시 토큰 관련 401 에러인 경우 강제 로그아웃 처리

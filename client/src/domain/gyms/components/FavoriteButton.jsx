@@ -3,3 +3,5 @@ const FavoriteButton = ({ gymNo, isFavorite, onToggle }) => (
         {isFavorite ? "★ 즐겨찾기됨" : "☆ 즐겨찾기"}
     </button>
 );
+
+export default FavoriteButton;

@@ -13,11 +13,10 @@ const ChatPage = () => {
   const isAdmin =
     loginState?.roleNames?.includes("ADMIN") ||
     loginState?.roleNames?.includes("MANAGER");
-
   // 화면 크기 감지
   useEffect(() => {
     const checkScreenSize = () => {
-      setIsMobile(window.innerWidth < 768);
+      setIsMobile(window.innerWidth < 1024);
     };
 
     checkScreenSize();

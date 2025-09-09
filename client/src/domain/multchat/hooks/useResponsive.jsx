@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 
 /**
- * 화면 크기 감지를 위한 커스텀 훅
+ * 화면 크기 감지를 위한 커스텀 훅 (단체채팅용)
  */
 const useResponsive = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
+
   useEffect(() => {
     const checkScreenSize = () => {
       const mobile = window.innerWidth < 1024; // lg breakpoint

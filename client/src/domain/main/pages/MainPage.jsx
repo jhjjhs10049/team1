@@ -89,7 +89,6 @@ const MainPage = () => {
             FitHub와 함께 내 주변 최고의 피트니스 센터를 찾아보세요.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            {" "}
             <button
               onClick={() => navigate("/gyms/map")}
               className="bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300"

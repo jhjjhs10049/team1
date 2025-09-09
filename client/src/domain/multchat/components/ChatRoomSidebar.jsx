@@ -11,12 +11,46 @@ const ChatRoomSidebar = ({
   username,
   isWebSocketConnected,
   onLeave,
+  isMobile,
+  showSidebar,
+  setShowSidebar,
 }) => {
   return (
-    <div className="w-80 bg-white border-r border-gray-200 flex flex-col overflow-hidden">
+    <div
+      className={`${
+        isMobile
+          ? `fixed inset-y-0 left-0 z-50 w-72 bg-white transform transition-transform duration-300 ease-in-out ${
+              showSidebar ? "translate-x-0" : "-translate-x-full"
+            } shadow-lg`
+          : "w-80 bg-white border-r border-gray-200"
+      } flex flex-col overflow-hidden`}
+    >
+      {" "}
       {/* 헤더 */}
       <div className="p-4 border-b border-gray-200 bg-teal-500 text-white">
-        <h2 className="text-lg font-bold mb-2">💬 단체 채팅</h2>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-lg font-bold">💬 단체 채팅</h2>
+          {isMobile && (
+            <button
+              onClick={() => setShowSidebar(false)}
+              className="p-1 hover:bg-teal-600 rounded"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          )}
+        </div>
         <div className="flex items-center space-x-2">
           <div
             className={`w-3 h-3 rounded-full ${
@@ -28,7 +62,6 @@ const ChatRoomSidebar = ({
           </span>
         </div>
       </div>
-
       {/* 채팅방 정보 */}
       {roomInfo && (
         <div className="p-3 border-b border-gray-200 bg-teal-50">
@@ -49,7 +82,6 @@ const ChatRoomSidebar = ({
           </div>
         </div>
       )}
-
       {/* 현재 사용자 정보 */}
       <div className="p-3 border-b border-gray-200 bg-blue-50">
         <div className="flex items-center space-x-2">
@@ -72,7 +104,6 @@ const ChatRoomSidebar = ({
           </button>
         </div>
       </div>
-
       {/* 참가자 목록 */}
       <div className="flex-1 overflow-y-auto">
         <ParticipantList participants={participants} currentUser={username} />

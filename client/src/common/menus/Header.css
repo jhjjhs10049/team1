@@ -1,5 +1,5 @@
 /* Header 반응형 CSS */
-@media (min-width: 801px) {
+@media (min-width: 1025px) {
   .mobile-menu {
     display: none !important;
   }
@@ -11,7 +11,7 @@
   }
 }
 
-@media (max-width: 800px) {
+@media (max-width: 1024px) {
   .mobile-menu {
     display: block !important;
   }
@@ -29,7 +29,7 @@
 }
 
 .mobile-menu.open {
-  max-height: 400px;
+  max-height: 600px;
   opacity: 1;
 }
 

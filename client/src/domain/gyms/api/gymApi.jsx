@@ -2,13 +2,17 @@ import api from "../../global/api/axios";
 import jwtAxios from "../../member/util/JWTUtil";
 
 // 헬스장 상세 조회 (로그인 상태에 따라 토큰 포함)
-// 로그인하지 않은 사용자도 상세 조회가 가능해야 하므로, 기존 API를 사용하되 토큰 유무에 따라 헤더를 추가.
+// 로그인하지 않은 사용자도 상세 조회가 가능해야 하므로, memberNo가 있을 때만 jwtAxios 사용
 export const fetchGymDetail = (gymNo, memberNo) => {
-    const token = localStorage.getItem("accessToken");
-    return api.get(`/api/gyms/${gymNo}`, {
-        params: { memberNo },
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
-    }).then(res => res.data);
+    if (memberNo) {
+        // 로그인한 사용자: jwtAxios 사용 (자동으로 토큰 헤더 추가)
+        return jwtAxios.get(`/api/gyms/${gymNo}`, {
+            params: { memberNo }
+        }).then(res => res.data);
+    } else {
+        // 로그인하지 않은 사용자: 일반 api 사용
+        return api.get(`/api/gyms/${gymNo}`).then(res => res.data);
+    }
 };
 
 // 헬스장 리뷰 목록 조회 (인증 불필요)

@@ -30,7 +30,7 @@ const gymsRouter = () => {
       ),
     },
     {
-      path: "detail/:gymId",
+      path: "detail/:gymno",
       element: (
         <Suspense fallback={Loading}>
           <GymDetailPage />
@@ -38,7 +38,15 @@ const gymsRouter = () => {
       ),
     },
     {
-      path: "review/:gymId",
+      path: ":gymno", // REST API 스타일 헬스장 상세 라우트 추가
+      element: (
+        <Suspense fallback={Loading}>
+          <GymDetailPage />
+        </Suspense>
+      ),
+    },
+    {
+      path: "review/:gymno",
       element: (
         <Suspense fallback={Loading}>
           <ProtectedComponent redirectMessage="헬스장 리뷰를 작성하려면 로그인이 필요합니다.">
@@ -48,7 +56,27 @@ const gymsRouter = () => {
       ),
     },
     {
-      path: "purchase/:gymId",
+      path: ":gymno/reviews", // REST API 스타일 라우트 추가
+      element: (
+        <Suspense fallback={Loading}>
+          <ProtectedComponent redirectMessage="헬스장 리뷰를 작성하려면 로그인이 필요합니다.">
+            <GymReviewPage />
+          </ProtectedComponent>
+        </Suspense>
+      ),
+    },
+    {
+      path: "purchase/:gymno",
+      element: (
+        <Suspense fallback={Loading}>
+          <ProtectedComponent redirectMessage="헬스장 이용권을 구매하려면 로그인이 필요합니다.">
+            <GymPurchasePage />
+          </ProtectedComponent>
+        </Suspense>
+      ),
+    },
+    {
+      path: ":gymno/purchase", // REST API 스타일 구매 라우트 추가
       element: (
         <Suspense fallback={Loading}>
           <ProtectedComponent redirectMessage="헬스장 이용권을 구매하려면 로그인이 필요합니다.">

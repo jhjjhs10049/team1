@@ -48,21 +48,49 @@ public class JWTCheckFilter extends OncePerRequestFilter {
            path.equals("/api/member/refresh") ||
            path.startsWith("/api/member/check-") ||
            // ❌ 제거: verify-password, withdraw는 인증 필요
-                // 기타 공개 API
-           path.startsWith("/api/gyms") || 
-           path.startsWith("/api/trainers") || 
            path.equals("/login") ||
            // 웹소켓 연결 경로 제외
            path.startsWith("/ws")) {
             log.debug("JWT filter excluded: {}", path);
             return true;
+        }        
+        
+        // Gyms API - 조회는 공개, 리뷰/즐겨찾기는 인증 필요
+        if(path.startsWith("/api/gyms")) {
+            if("GET".equals(method)) {
+                // 즐겨찾기 관련 API는 인증 필요
+                if(path.contains("/favorites")) {
+                    log.debug("JWT filter applied (gyms favorites): {}", path);
+                    return false;
+                }
+                // 나머지 GET 요청은 공개 (목록, 상세, 리뷰 조회)
+                log.debug("JWT filter excluded (gyms GET): {}", path);
+                return true;
+            }
+            // POST, DELETE 등은 인증 필요 (리뷰 작성/삭제, 즐겨찾기)
+            log.debug("JWT filter applied (gyms non-GET): {}", path);
+            return false;
+        }
+
+        // Trainers API - 조회는 공개, 리뷰는 인증 필요  
+        if(path.startsWith("/api/trainers")) {
+            if("GET".equals(method)) {
+                // GET 요청은 모두 공개 (목록, 상세, 리뷰 조회)
+                log.debug("JWT filter excluded (trainers GET): {}", path);
+                return true;
+            }
+            // POST, DELETE 등은 인증 필요 (리뷰 작성/삭제)
+            log.debug("JWT filter applied (trainers non-GET): {}", path);
+            return false;
         }
 
         // /api/files의 GET 요청만 체크하지 않음 (파일 조회)
         if(path.startsWith("/api/files") && "GET".equals(method)) {
             log.debug("JWT filter excluded (file access): {}", path);
             return true;
-        }        // /api/support의 GET 요청 중 공개 API만 체크하지 않음 (FAQ 조회)
+        }        
+        
+        // /api/support의 GET 요청 중 공개 API만 체크하지 않음 (FAQ 조회)
         if(path.startsWith("/api/support") && "GET".equals(method)) {
             // 개인 정보 관련 요청은 인증 필요
             if(path.contains("/my") || 
@@ -88,11 +116,14 @@ public class JWTCheckFilter extends OncePerRequestFilter {
             log.debug("JWT filter excluded (public multchat access): {}", path);
             return true;
         }
+        
         // /api/board의 GET 요청만 체크하지 않음 (목록 조회, 상세 조회, 댓글 조회)
         if(path.startsWith("/api/board") && "GET".equals(method)) {
             log.debug("JWT filter excluded (board access): {}", path);
             return true;
-        }          // 조회수 증가 API는 POST지만 인증 불필요
+        }
+        
+        // 조회수 증가 API는 POST지만 인증 불필요
         if(path.matches("/api/board/\\d+/view") && "POST".equals(method)) {
             log.debug("JWT filter excluded (view count): {}", path);
             return true;
@@ -101,19 +132,20 @@ public class JWTCheckFilter extends OncePerRequestFilter {
         // 나머지 요청들은 모두 JWT 체크 필요
         log.debug("JWT filter applied: {}", path);
         return false;
-    }    @Override
+    }    
+    
+    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         
         String authHeaderStr = request.getHeader("Authorization");
         String path = request.getRequestURI();
         String method = request.getMethod();
-        
-        log.debug("JWT Filter 실행: {} {}", method, path);
+          log.debug("JWT Filter 실행: {} {} - Authorization Header: {}", method, path, authHeaderStr);
 
         try{
             // Authorization 헤더가 없거나 Bearer로 시작하지 않으면 에러 처리
             if (authHeaderStr == null || !authHeaderStr.startsWith("Bearer ")) {
-                log.debug("Authorization 헤더가 없거나 형식이 잘못됨: {}", authHeaderStr);
+                log.warn("Authorization 헤더가 없거나 형식이 잘못됨 - Path: {}, Header: {}", path, authHeaderStr);
                 throw new RuntimeException("Authorization header is missing or invalid");
             }//Bearer accesstoken..
             // (Bearer 토큰) 형식인데 여기서 토큰만 필요 하다.

@@ -258,7 +258,7 @@ const SchedulePage = () => {
     <BasicLayout>
       <div className="p-6 space-y-6">
         {/* ───────────────── 상단: 오늘 지표 ───────────────── */}
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <StatCard
             label="칼로리"
             value={`${todayStats.calories} kcal`}

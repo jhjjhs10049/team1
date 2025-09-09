@@ -30,7 +30,7 @@ const trainersRouter = () => {
       ),
     },
     {
-      path: "detail/:trainerId",
+      path: "detail/:trainerno",
       element: (
         <Suspense fallback={Loading}>
           <TrainerDetailPage />
@@ -38,7 +38,7 @@ const trainersRouter = () => {
       ),
     },
     {
-      path: "review/:trainerId",
+      path: "review/:trainerno",
       element: (
         <Suspense fallback={Loading}>
           <ProtectedComponent redirectMessage="트레이너 리뷰를 작성하려면 로그인이 필요합니다.">
