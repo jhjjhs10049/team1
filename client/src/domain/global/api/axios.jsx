@@ -1,7 +1,7 @@
 import axios from "axios";
 import { getCookie } from "../../member/util/cookieUtil";
 
-export const API_SERVER_HOST = "http://localhost:8080";
+export const API_SERVER_HOST = "http://localhost:8022";
 
 const api = axios.create({
   baseURL: API_SERVER_HOST, // 백엔드 주소

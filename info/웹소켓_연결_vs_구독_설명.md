@@ -4,7 +4,7 @@
 ```
 관리자 A 로그인
     │
-    ├── 🔌 웹소켓 연결 (ws://localhost:8080/ws?access_token=admin_token)
+    ├── 🔌 웹소켓 연결 (ws://localhost:8022/ws?access_token=admin_token)
     │   └── ✅ 한 번만 연결, 계속 유지
     │
     ├── 📄 관리자 페이지 접속
@@ -28,7 +28,7 @@
 ```
 사용자 B 로그인
     │
-    ├── 🔌 웹소켓 연결 (ws://localhost:8080/ws?access_token=user_token)
+    ├── 🔌 웹소켓 연결 (ws://localhost:8022/ws?access_token=user_token)
     │   └── ✅ 한 번만 연결, 계속 유지
     │
     ├── 💬 고객센터 채팅 시작

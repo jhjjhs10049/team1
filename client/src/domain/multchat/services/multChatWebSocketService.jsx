@@ -70,11 +70,15 @@ class MultChatWebSocketService {
         reject(new Error("JWT 토큰이 만료되었습니다. 다시 로그인해주세요."));
         return;
       }
-
       console.log("🔑 JWT 토큰 유효성 확인 완료");
 
-      // JWT 토큰을 쿼리 파라미터로 전달 (WebSocket 핸드셰이크에서 더 안정적)
-      const wsUrl = `ws://localhost:8080/ws?access_token=${memberInfo.accessToken}`;
+      // 웹소켓 URL 동적 생성 (로컬/서버 환경에 따라 프로토콜 자동 결정)
+      const wsHost =
+        window.location.hostname === "localhost"
+          ? "localhost:8022"
+          : window.location.host;
+      const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      const wsUrl = `${wsProtocol}//${wsHost}/ws?access_token=${memberInfo.accessToken}`;
 
       this.client = new Client({
         brokerURL: wsUrl,

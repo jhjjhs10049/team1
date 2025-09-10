@@ -12,7 +12,7 @@ const GeminiChatComponent = () => {
     setResult(""); // 이전 결과 지우기
 
     try {
-      const res = await jwtAxios.post("http://localhost:8080/api/gemini", {
+      const res = await jwtAxios.post("http://localhost:8022/api/gemini", {
         prompt,
       });
       // 응답이 객체라면 JSON 문자열로 변환해서 출력

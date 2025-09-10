@@ -56,7 +56,7 @@ class ConnectionManager {
       // 웹소켓 URL 동적 생성
       const wsHost =
         window.location.hostname === "localhost"
-          ? "localhost:8080"
+          ? "localhost:8022"
           : window.location.host;
       const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
       const wsUrl = `${wsProtocol}//${wsHost}/ws?access_token=${memberInfo.accessToken}`;
