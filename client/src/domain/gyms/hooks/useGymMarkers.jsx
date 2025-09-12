@@ -1,69 +1,125 @@
 import { useEffect, useState } from "react";
 
-const useGymMarkers = ({
-    mapRef, isMapReady, filteredGyms, activeInfoWindow, setActiveInfoWindow
-}) => {
-    const [markers, setMarkers] = useState([]);
-    const [labelOverlays, setLabelOverlays] = useState([]);
+// 커스텀 마커 HTML 생성 함수
+const createCustomMarkerHTML = (gymName, isSelected = false) => {
+  return `
+    <div class="custom-gym-marker ${isSelected ? "selected" : ""}" style="
+      position: relative;
+      width: 40px;
+      height: 50px;
+      cursor: pointer;
+      transform: translate(-50%, -100%);
+    ">
+      <div style="
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #14b8a6 0%, #0891b2 100%);
+        border-radius: 50% 50% 50% 0;
+        border: 3px solid white;
+        box-shadow: 0 4px 12px rgba(20, 184, 166, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transform: rotate(-45deg);
+        transition: all 0.3s ease;
+      ">
+        <div style="
+          transform: rotate(45deg);
+          font-size: 16px;
+          font-weight: bold;
+          color: white;
+        ">💪</div>
+      </div>
+      <div style="
+        position: absolute;
+        top: 42px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(20, 184, 166, 0.9);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        white-space: nowrap;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      ">${gymName || "헬스장"}</div>
+      <style>
+        .custom-gym-marker:hover > div:first-child {
+          transform: rotate(-45deg) scale(1.1);
+          box-shadow: 0 6px 20px rgba(20, 184, 166, 0.6);
+        }
+        .custom-gym-marker.selected > div:first-child {
+          background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+          box-shadow: 0 6px 20px rgba(245, 158, 11, 0.6);
+          transform: rotate(-45deg) scale(1.15);
+        }
+        .custom-gym-marker.selected > div:nth-child(2) {
+          background: rgba(245, 158, 11, 0.9);
+        }
+      </style>
+    </div>
+  `;
+};
 
-    useEffect(() => {
-        if (!mapRef.current || !isMapReady) return;
+const useGymMarkers = ({ mapRef, isMapReady, filteredGyms, onMarkerClick }) => {
+  const [markers, setMarkers] = useState([]);
+  const [labelOverlays, setLabelOverlays] = useState([]);
+  const [selectedGymNo, setSelectedGymNo] = useState(null);
 
-        // 원본: 기존 마커/라벨 정리
-        markers.forEach((m) => m.setMap(null));
-        labelOverlays.forEach((o) => o.setMap(null));
+  useEffect(() => {
+    if (!mapRef.current || !isMapReady) return;
 
-        const newMarkers = [];
-        const newOverlays = [];
+    // 기존 마커/라벨 정리
+    markers.forEach((m) => m.setMap(null));
+    labelOverlays.forEach((o) => o.setMap(null));
 
-        filteredGyms.forEach((g) => {
-            const pos = new window.kakao.maps.LatLng(g.lat, g.lng);
+    const newOverlays = [];
 
-            // 마커
-            const marker = new window.kakao.maps.Marker({
-                map: mapRef.current,
-                position: pos,
-                title: g.name
-            });
+    filteredGyms.forEach((g) => {
+      const pos = new window.kakao.maps.LatLng(g.lat, g.lng);
 
-            // 인포윈도우
-            const infoWindow = new window.kakao.maps.InfoWindow({
-                content:
-                    '<div style="padding:6px 8px;font-size:12px;line-height:1.4;">' +
-                    `<strong>${g.name}</strong><br/>` +
-                    `<span style="color:#6b7280;">${g.address ? g.address : ""}</span>` +
-                    "</div>"
-            });
-            window.kakao.maps.event.addListener(marker, "click", () => {
-                if (activeInfoWindow) activeInfoWindow.close();
-                infoWindow.open(mapRef.current, marker);
-                setActiveInfoWindow(infoWindow);
-            });
+      // 커스텀 마커 DOM 요소 생성
+      const markerDiv = document.createElement("div");
+      markerDiv.innerHTML = createCustomMarkerHTML(
+        g.name,
+        selectedGymNo === g.gymNo
+      );
+      const markerElement = markerDiv.firstElementChild;
 
-            // 라벨(항상 표시)
-            const labelEl = document.createElement("div");
-            labelEl.className = "marker-label";
-            labelEl.textContent = g.name || "";
+      // CustomOverlay로 커스텀 마커 생성
+      const customMarker = new window.kakao.maps.CustomOverlay({
+        position: pos,
+        content: markerElement,
+        xAnchor: 0.5,
+        yAnchor: 1,
+        zIndex: selectedGymNo === g.gymNo ? 10 : 5,
+      });
 
-            const overlay = new window.kakao.maps.CustomOverlay({
-                position: pos,
-                content: labelEl,
-                xAnchor: 0.5, // 가운데 정렬
-                yAnchor: 0,   // 좌표 지점을 콘텐츠 상단으로 가정 후, CSS로 아래로 내림
-                zIndex: 2
-            });
-            overlay.setMap(mapRef.current);
+      customMarker.setMap(mapRef.current);
 
-            newMarkers.push(marker);
-            newOverlays.push(overlay);
-        });
+      // 마커 클릭 이벤트 추가
+      markerElement.addEventListener("click", () => {
+        setSelectedGymNo(g.gymNo);
+        if (onMarkerClick) {
+          onMarkerClick(g);
+        }
+      });
 
-        setMarkers(newMarkers);
-        setLabelOverlays(newOverlays);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filteredGyms, isMapReady, mapRef]);
+      newOverlays.push(customMarker);
+    });
 
-    return { markers, labelOverlays };
-}
+    setMarkers([]);
+    setLabelOverlays(newOverlays);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredGyms, isMapReady, mapRef, selectedGymNo]);
+
+  return { markers: [], labelOverlays, setSelectedGymNo };
+};
 
 export default useGymMarkers;

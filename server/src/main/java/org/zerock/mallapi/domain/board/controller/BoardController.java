@@ -85,26 +85,39 @@ public class BoardController {        private final BoardService boardService;
 
         public record UpdateBoardRequest(String title, String content, List<String> images) {
         }        
-        
-        @PreAuthorize("hasAnyRole('USER','MANAGER','ADMIN')")
+          @PreAuthorize("hasAnyRole('USER','MANAGER','ADMIN')")
         @PutMapping("/{boardId}")
         public ResponseEntity<Void> update(
                         @PathVariable Long boardId,
                         @RequestBody UpdateBoardRequest req,
                         @AuthenticationPrincipal MemberDTO me) {
 
-                Long currentUserId = memberRepository.findByEmail(me.getEmail())
-                                .map(Member::getMemberNo)
-                                .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
+                log.info("=== 게시글 수정 요청 ===");
+                log.info("boardId: {}", boardId);
+                log.info("요청자: {}", me.getEmail());
+                log.info("요청 데이터: title={}, content={}, images={}", req.title(), req.content(), req.images());
 
-                boardService.update(
-                                boardId,
-                                req.title(),
-                                req.content(),
-                                req.images() == null ? List.of() : req.images(),
-                                currentUserId);
-                return ResponseEntity.noContent().build();
-        }        
+                try {
+                        Long currentUserId = memberRepository.findByEmail(me.getEmail())
+                                        .map(Member::getMemberNo)
+                                        .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
+
+                        log.info("현재 사용자 ID: {}", currentUserId);
+
+                        boardService.update(
+                                        boardId,
+                                        req.title(),
+                                        req.content(),
+                                        req.images() == null ? List.of() : req.images(),
+                                        currentUserId);
+                        
+                        log.info("=== 게시글 수정 완료 ===");
+                        return ResponseEntity.noContent().build();
+                } catch (Exception e) {
+                        log.error("=== 게시글 수정 실패 ===", e);
+                        throw e;
+                }
+        }
         
         @PreAuthorize("hasAnyRole('USER','MANAGER','ADMIN')")
         @DeleteMapping("/{boardId}")

@@ -12,7 +12,7 @@ const GeminiChatComponent = () => {
     setResult(""); // 이전 결과 지우기
 
     try {
-      const res = await jwtAxios.post("http://localhost:8022/api/gemini", {
+      const res = await jwtAxios.post("http://localhost:8080/api/gemini", {
         prompt,
       });
       // 응답이 객체라면 JSON 문자열로 변환해서 출력
@@ -35,47 +35,60 @@ const GeminiChatComponent = () => {
       askGemini();
     }
   };
+  
   return (
-    <div className="p-4 border rounded-lg">
-      <textarea
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        onKeyDown={handleKeyPress}
-        placeholder="프롬프트 입력 (Enter: 전송, Shift+Enter: 줄바꿈)"
-        className="w-full border p-2 min-h-[100px] resize-none"
-        disabled={isLoading}
-      />
-      <button
-        onClick={askGemini}
-        disabled={isLoading || !prompt.trim()}
-        className={`mt-2 px-4 py-2 rounded text-white ${
-          isLoading || !prompt.trim()
-            ? "bg-gray-400 cursor-not-allowed"
-            : "bg-blue-500 hover:bg-blue-600"
-        }`}
-      >
-        {isLoading ? "생성중..." : "전송"}
-      </button>
-      <div className="mt-4 p-2 border rounded bg-gray-50 min-h-[100px] whitespace-pre-wrap">
+    <div className="space-y-4">
+      <div className="space-y-3">
+        <textarea
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          onKeyDown={handleKeyPress}
+          placeholder="운동 관련 질문을 입력하세요... (Enter: 전송, Shift+Enter: 줄바꿈)"
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors min-h-[100px] resize-none"
+          disabled={isLoading}
+        />
+        <button
+          onClick={askGemini}
+          disabled={isLoading || !prompt.trim()}
+          className={`w-full px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
+            isLoading || !prompt.trim()
+              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+              : "bg-gradient-to-r from-teal-500 to-teal-600 text-white hover:from-teal-600 hover:to-teal-700 shadow-sm"
+          }`}
+        >
+          {isLoading ? "AI가 답변 중..." : "💬 AI에게 질문하기"}
+        </button>
+      </div>
+      
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 min-h-[120px]">
         {isLoading ? (
-          <div className="flex items-center justify-center h-20">
-            <div className="flex space-x-1">
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-              <div
-                className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
-                style={{ animationDelay: "0.1s" }}
-              ></div>
-              <div
-                className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
-                style={{ animationDelay: "0.2s" }}
-              ></div>
+          <div className="flex items-center justify-center h-24">
+            <div className="flex items-center gap-3">
+              <div className="flex space-x-1">
+                <div className="w-2 h-2 bg-teal-500 rounded-full animate-bounce"></div>
+                <div
+                  className="w-2 h-2 bg-teal-500 rounded-full animate-bounce"
+                  style={{ animationDelay: "0.1s" }}
+                ></div>
+                <div
+                  className="w-2 h-2 bg-teal-500 rounded-full animate-bounce"
+                  style={{ animationDelay: "0.2s" }}
+                ></div>
+              </div>
+              <span className="text-gray-600 text-sm">
+                AI가 답변을 생성하고 있습니다...
+              </span>
             </div>
-            <span className="ml-3 text-gray-600">
-              AI가 답변을 생성하고 있습니다...
-            </span>
           </div>
         ) : (
-          result || "여기에 AI 응답이 표시됩니다."
+          <div className="text-gray-700 whitespace-pre-wrap leading-relaxed">
+            {result || (
+              <div className="text-center text-gray-500 py-6">
+                <span className="text-2xl block mb-2">🤖</span>
+                여기에 AI 코치의 답변이 표시됩니다.
+              </div>
+            )}
+          </div>
         )}
       </div>
     </div>

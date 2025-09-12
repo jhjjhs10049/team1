@@ -3,6 +3,7 @@ import { API_SERVER_HOST } from "../../global/api/axios.jsx";
 import jwtAxios from "../util/JWTUtil";
 
 const host = `${API_SERVER_HOST}/api/member`;
+const authHost = `${API_SERVER_HOST}/api/auth`;
 
 export const loginPost = async (loginParam) => {
   //x-www-form-urlencoded : 주로 HTML 폼 데이터를 서버에 전송할 때 사용되는 MIME 타입.
@@ -93,6 +94,30 @@ export const verifyPassword = async (email, password) => {
 export const withdrawMember = async (email) => {
   const res = await jwtAxios.delete(
     `${host}/withdraw?email=${encodeURIComponent(email)}`
+  );
+  return res.data;
+};
+
+// 이메일 인증 관련 API
+export const sendVerificationCode = async (email) => {
+  const res = await axios.post(
+    `${authHost}/send-code?email=${encodeURIComponent(email)}`
+  );
+  return res.data;
+};
+
+export const verifyEmailCode = async (email, code) => {
+  const res = await axios.post(
+    `${authHost}/verify-code?email=${encodeURIComponent(
+      email
+    )}&code=${encodeURIComponent(code)}`
+  );
+  return res.data;
+};
+
+export const checkVerificationStatus = async (email) => {
+  const res = await axios.get(
+    `${authHost}/verify-status?email=${encodeURIComponent(email)}`
   );
   return res.data;
 };

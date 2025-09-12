@@ -1,0 +1,133 @@
+/* 채팅 테마 전역 변수 */
+:root {
+  /* 기본 색상 */
+  --chat-primary: #14b8a6;
+  --chat-primary-hover: #0f766e;
+  --chat-primary-light: #5eead4;
+  --chat-primary-dark: #0d9488;
+
+  /* 배경 색상 */
+  --chat-bg-primary: #ffffff;
+  --chat-bg-secondary: #f9fafb;
+  --chat-bg-gray-50: #f9fafb;
+  --chat-bg-gray-100: #f3f4f6;
+
+  /* 텍스트 색상 */
+  --chat-text-primary: #1f2937;
+  --chat-text-secondary: #6b7280;
+  --chat-text-muted: #9ca3af;
+  --chat-text-white: #ffffff;
+
+  /* 상태 색상 */
+  --chat-success: #10b981;
+  --chat-warning: #f59e0b;
+  --chat-error: #ef4444;
+  --chat-info: #3b82f6;
+
+  /* 경계선 색상 */
+  --chat-border-light: #e5e7eb;
+  --chat-border-medium: #d1d5db;
+  --chat-border-dark: #9ca3af;
+
+  /* 그림자 */
+  --chat-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --chat-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --chat-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+
+  /* 반응형 브레이크포인트 */
+  --breakpoint-mobile: 767px;
+  --breakpoint-tablet: 1023px;
+  --breakpoint-desktop: 1024px;
+
+  /* 간격 */
+  --chat-spacing-xs: 0.25rem;
+  --chat-spacing-sm: 0.5rem;
+  --chat-spacing-md: 0.75rem;
+  --chat-spacing-lg: 1rem;
+  --chat-spacing-xl: 1.5rem;
+
+  /* 글꼴 크기 */
+  --chat-text-xs: 0.75rem;
+  --chat-text-sm: 0.875rem;
+  --chat-text-base: 1rem;
+  --chat-text-lg: 1.125rem;
+  --chat-text-xl: 1.25rem;
+
+  /* 애니메이션 */
+  --chat-transition-fast: 0.15s ease-in-out;
+  --chat-transition-normal: 0.3s ease-in-out;
+  --chat-transition-slow: 0.5s ease-in-out;
+
+  /* 터치 최적화 */
+  --chat-touch-target: 44px;
+  --chat-touch-target-large: 56px;
+
+  /* Z-index */
+  --chat-z-modal: 50;
+  --chat-z-overlay: 40;
+  --chat-z-dropdown: 30;
+  --chat-z-sticky: 20;
+  --chat-z-base: 10;
+}
+
+/* 다크 모드 변수 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --chat-bg-primary: #1f2937;
+    --chat-bg-secondary: #111827;
+    --chat-bg-gray-50: #111827;
+    --chat-bg-gray-100: #1f2937;
+
+    --chat-text-primary: #f9fafb;
+    --chat-text-secondary: #d1d5db;
+    --chat-text-muted: #9ca3af;
+
+    --chat-border-light: #374151;
+    --chat-border-medium: #4b5563;
+    --chat-border-dark: #6b7280;
+
+    --chat-primary: #10b981;
+    --chat-primary-hover: #059669;
+  }
+}
+
+/* 고대비 모드 변수 */
+@media (prefers-contrast: high) {
+  :root {
+    --chat-text-primary: #000000;
+    --chat-bg-primary: #ffffff;
+    --chat-border-light: #000000;
+    --chat-primary: #0000ff;
+    --chat-primary-hover: #000080;
+  }
+}
+
+/* 모바일 크기 조정 변수 */
+@media (max-width: 767px) {
+  :root {
+    --chat-text-xs: 0.7rem;
+    --chat-text-sm: 0.8rem;
+    --chat-text-base: 0.9rem;
+    --chat-text-lg: 1rem;
+
+    --chat-spacing-xs: 0.125rem;
+    --chat-spacing-sm: 0.375rem;
+    --chat-spacing-md: 0.5rem;
+    --chat-spacing-lg: 0.75rem;
+    --chat-spacing-xl: 1rem;
+  }
+}
+
+/* 사용 예시 */
+/*
+.chat-button {
+  background-color: var(--chat-primary);
+  color: var(--chat-text-white);
+  border: 1px solid var(--chat-border-light);
+  transition: background-color var(--chat-transition-fast);
+}
+
+.chat-button:hover {
+  background-color: var(--chat-primary-hover);
+}
+*/

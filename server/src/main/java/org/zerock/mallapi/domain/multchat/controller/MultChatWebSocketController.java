@@ -209,7 +209,7 @@ public class MultChatWebSocketController {
         return roomManager.getOnlineUserCount(roomNo);
     }
 
-    /**
+    /*
      * 특정 채팅방의 온라인 사용자 목록 조회
      */
     public Set<String> getOnlineUsers(Long roomNo) {

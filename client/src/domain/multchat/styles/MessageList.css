@@ -1,0 +1,274 @@
+/* 단체 채팅 메시지 리스트 컴포넌트 스타일 */
+
+/* 메인 컨테이너 */
+.multchat-message-list-container {
+  height: 100%;
+  overflow-y: auto;
+
+  /* 성능 최적화 */
+  contain: layout style paint;
+  will-change: scroll-position;
+}
+
+.multchat-message-list-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem;
+  padding-bottom: 1rem;
+  min-height: 100%;
+}
+
+/* 로딩 인디케이터 */
+.multchat-loading-indicator {
+  display: flex;
+  justify-content: center;
+  padding: 1rem 0;
+}
+
+.multchat-loading-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #f3f4f6;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+}
+
+.multchat-loading-spinner {
+  animation: spin 1s linear infinite;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid #14b8a6;
+  border-top-color: transparent;
+  border-radius: 50%;
+}
+
+.multchat-loading-text {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* 메시지 끝 표시 */
+.multchat-message-end {
+  display: flex;
+  justify-content: center;
+  padding: 1rem 0;
+}
+
+.multchat-message-end-content {
+  background-color: #f3f4f6;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+}
+
+.multchat-message-end-text {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* 메시지 아이템 */
+.multchat-message-item {
+  display: flex;
+  width: 100%;
+  margin-bottom: 0.75rem;
+
+  /* 성능 최적화 */
+  contain: layout style;
+}
+
+.multchat-message-item.own {
+  justify-content: flex-end;
+}
+
+.multchat-message-item.other {
+  justify-content: flex-start;
+}
+
+.multchat-message-wrapper {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  max-width: 70%;
+}
+
+.multchat-message-wrapper.own {
+  flex-direction: row-reverse;
+}
+
+.multchat-message-wrapper.other {
+  flex-direction: row;
+}
+
+/* 프로필 아바타 */
+.multchat-profile-avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background-color: #14b8a6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+/* 메시지 내용 영역 */
+.multchat-message-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.multchat-message-content.own {
+  align-items: flex-end;
+}
+
+.multchat-message-content.other {
+  align-items: flex-start;
+}
+
+/* 발신자 이름 */
+.multchat-sender-name {
+  margin-bottom: 0.25rem;
+}
+
+.multchat-sender-name-text {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* 메시지 버블 */
+.multchat-message-bubble {
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.multchat-message-bubble.own {
+  background-color: #14b8a6;
+  color: white;
+  border-radius: 0.5rem 0.5rem 0.125rem 0.5rem;
+}
+
+.multchat-message-bubble.other {
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  color: #111827;
+  border-radius: 0.5rem 0.5rem 0.5rem 0.125rem;
+}
+
+.multchat-message-text {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* 메시지 시간 */
+.multchat-message-time {
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  color: #9ca3af;
+}
+
+.multchat-message-time.own {
+  text-align: right;
+}
+
+.multchat-message-time.other {
+  text-align: left;
+}
+
+/* 시스템 메시지 */
+.multchat-system-message {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.75rem;
+}
+
+.multchat-system-message-content {
+  background-color: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 9999px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* 빈 메시지 상태 */
+.multchat-empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.multchat-empty-state-content {
+  text-align: center;
+}
+
+.multchat-empty-state-emoji {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.multchat-empty-state-title {
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+}
+
+.multchat-empty-state-subtitle {
+  font-size: 0.875rem;
+  color: #9ca3af;
+}
+
+/* 스크롤 앵커 */
+.multchat-scroll-anchor {
+  height: 0.25rem;
+}
+
+/* 애니메이션 */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 모바일 반응형 */
+@media (max-width: 639px) {
+  .multchat-message-list-content {
+    padding: 0.75rem;
+  }
+
+  .multchat-message-wrapper {
+    max-width: 85%;
+  }
+
+  .multchat-message-bubble {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .multchat-message-text {
+    font-size: 0.8rem;
+  }
+
+  .multchat-profile-avatar {
+    width: 1.75rem;
+    height: 1.75rem;
+    font-size: 0.75rem;
+  }
+
+  .multchat-empty-state-emoji {
+    font-size: 3rem;
+  }
+}

@@ -120,20 +120,12 @@ public class MemberController {
             return ResponseEntity.badRequest()
                 .body(Map.of("message", "비밀번호 확인 중 오류가 발생했습니다."));
         }
-    }
-
-    // 회원탈퇴
+    }    // 회원탈퇴
     @DeleteMapping("/withdraw")
-    public ResponseEntity<?> withdrawMember(@RequestBody Map<String, String> request) {
+    public ResponseEntity<?> withdrawMember(@RequestParam String email) {
         try {
-            String email = request.get("email");
-            String password = request.get("password");
             log.info("Member withdraw request: " + email);
-            // 비밀번호 검증
-            boolean isValid = memberService.verifyPassword(email, password);
-            if (!isValid) {
-                throw new RuntimeException("비밀번호가 일치하지 않습니다.");
-            }
+            
             memberService.withdrawMember(email);
             return ResponseEntity.ok(Map.of("message", "회원탈퇴가 완료되었습니다."));
         } catch (RuntimeException e) {
@@ -145,7 +137,7 @@ public class MemberController {
             return ResponseEntity.badRequest()
                 .body(Map.of("message", "회원탈퇴 중 오류가 발생했습니다."));
         }
-    }      // 기존 MANAGER들에게 roleCode 부여 (관리자 전용)
+    }// 기존 MANAGER들에게 roleCode 부여 (관리자 전용)
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/admin/assign-manager-codes")
     public ResponseEntity<?> assignManagerCodes() {

@@ -1,0 +1,265 @@
+/* 1대1 채팅 입력 컴포넌트 스타일 */
+
+/* 성능 최적화 import */
+@import '../../../common/styles/ChatThemeVariables.css';
+@import '../../../common/styles/ChatPerformanceOptimization.css';
+
+/* 메인 컨테이너 */
+.chat-input-container {
+  background-color: white;
+  border-top: 1px solid #e5e7eb;
+  padding: 0.75rem 1rem;
+
+  /* 성능 최적화 추가 */
+  contain: layout style;
+  will-change: height;
+}
+
+@media (min-width: 640px) {
+  .chat-input-container {
+    padding: 1rem;
+  }
+}
+
+/* 상태 알림 */
+.chat-status-alert {
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .chat-status-alert {
+    padding: 0.75rem;
+  }
+}
+
+.chat-status-alert.waiting {
+  background-color: #fefce8;
+  border: 1px solid #fef3c7;
+}
+
+.chat-status-alert.rejected {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.chat-status-alert-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.chat-status-spinner {
+  animation: spin 1s linear infinite;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid #eab308;
+  border-top-color: transparent;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.chat-status-text {
+  color: #a16207;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.chat-status-text.rejected {
+  color: #b91c1c;
+}
+
+.chat-status-icon {
+  width: 1rem;
+  height: 1rem;
+  color: #ef4444;
+  flex-shrink: 0;
+}
+
+/* 이모지 버튼 컨테이너 */
+.emoji-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.5rem;
+  margin-bottom: 0.75rem;
+  overflow-x: auto;
+}
+
+@media (min-width: 640px) {
+  .emoji-container {
+    gap: 0.5rem;
+  }
+}
+
+.emoji-button {
+  font-size: 1.125rem;
+  border-radius: 50%;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+@media (min-width: 640px) {
+  .emoji-button {
+    font-size: 1.25rem;
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+}
+
+.emoji-button:enabled:hover {
+  background-color: #f3f4f6;
+}
+
+.emoji-button:disabled {
+  background-color: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* 입력 폼 */
+.input-form {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.input-wrapper {
+  flex: 1;
+  position: relative;
+}
+
+.input-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  resize: none;
+  outline: none;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+@media (min-width: 640px) {
+  .input-textarea {
+    padding: 0.75rem 1rem;
+  }
+}
+
+.input-textarea:enabled:focus {
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.3);
+}
+
+.input-textarea:disabled {
+  background-color: #f3f4f6;
+  border-color: #e5e7eb;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+.character-count {
+  position: absolute;
+  bottom: 0.25rem;
+  right: 0.5rem;
+  font-size: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .character-count {
+    bottom: 0.5rem;
+  }
+}
+
+.character-count.disabled {
+  color: #9ca3af;
+}
+
+.character-count.enabled {
+  color: #6b7280;
+}
+
+/* 전송 버튼 */
+.send-button {
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  transition: all 0.2s;
+  height: 68px;
+  border: none;
+  cursor: pointer;
+}
+
+@media (min-width: 640px) {
+  .send-button {
+    padding: 0.75rem 1rem;
+  }
+}
+
+.send-button:enabled {
+  background-color: #14b8a6;
+  color: white;
+}
+
+.send-button:enabled:hover {
+  background-color: #0f766e;
+}
+
+.send-button:disabled {
+  background-color: #d1d5db;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+.send-button-text {
+  font-size: 0.875rem;
+}
+
+.send-button-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* 애니메이션 */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 모바일 반응형 */
+@media (max-width: 639px) {
+  .chat-input-container {
+    padding: 0.75rem;
+  }
+  
+  .emoji-button {
+    width: 2rem;
+    height: 2rem;
+    font-size: 1rem;
+  }
+  
+  .input-textarea {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+  
+  .send-button {
+    padding: 0.75rem;
+    min-width: 60px;
+  }
+}

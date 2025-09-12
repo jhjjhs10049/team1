@@ -53,7 +53,9 @@ public class CustomSecurityConfig {
                 .requestMatchers("/api/member/check-**").permitAll() // 중복체크 허용
                 .requestMatchers("/api/member/kakao").permitAll() // 카카오 로그인 허용
                 .requestMatchers("/api/member/refresh").permitAll() // 토큰 재발급 허용
-                // ❌ 제거: 비밀번호 확인과 회원탈퇴는 인증 필요
+                
+                // 이메일 인증 API 허용
+                .requestMatchers("/api/auth/**").permitAll() // 이메일 인증 관련 허용
                 
                 // 웹소켓 연결 허용
                 .requestMatchers("/ws/**").permitAll()
@@ -91,12 +93,14 @@ public class CustomSecurityConfig {
                 .requestMatchers(GET, "/api/trainers/*").permitAll() // 트레이너 상세 조회
                 .requestMatchers(GET, "/api/trainers/*/reviews").permitAll() // 리뷰 조회는 공개
                 .requestMatchers("/api/trainers/*/reviews").authenticated() // 리뷰 작성/삭제는 인증 필요
-                
-                // Schedule API - 모든 기능 인증 필요 (개인 일정)
+                  // Schedule API - 모든 기능 인증 필요 (개인 일정)
                 .requestMatchers("/api/schedules/**").authenticated()
                 .requestMatchers("/api/routines/**").authenticated() 
                 .requestMatchers("/api/stats/**").authenticated()
                 .requestMatchers("/api/weekly-goal/**").authenticated()
+                
+                // Gemini AI API - 로그인한 사용자만 사용 가능 (개인 일정 기반 AI 코칭)
+                .requestMatchers("/api/gemini/**").authenticated()
                 
                 // MultChat API - 조회는 일부 공개, 참여는 인증 필요
                 .requestMatchers(GET, "/api/multchat/rooms").permitAll() // 채팅방 목록 조회 

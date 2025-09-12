@@ -48,7 +48,6 @@ const BasicMenu = () => {
     <>
       <nav id="navbar" className="bg-gray-700 w-full relative" ref={menuRef}>
         <div className="flex max-w-7xl mx-auto px-4 sm:px-6">
-          {" "}
           {/* 데스크톱 메뉴 - 1025px 이상에서만 표시 */}
           <div className="desktop-menu hidden w-full items-center">
             {/* 왼쪽 영역 */}
@@ -109,7 +108,7 @@ const BasicMenu = () => {
                 </AdminManagerLink>
               </div>
             </div>
-          </div>{" "}
+          </div>
           {/* 모바일 헤더 - 1024px 이하에서만 표시 */}
           <div className="mobile-header hidden justify-between items-center w-full py-4">
             {/* 로고/브랜드 - 왼쪽 정렬 */}

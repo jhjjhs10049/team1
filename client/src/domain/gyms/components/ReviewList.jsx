@@ -64,7 +64,7 @@ export const StarRating = ({ score, size = 18 }) => {
   const empty = 5 - full - half;
 
   return (
-    <span style={{ display: "inline-flex", gap: 2, verticalAlign: "middle" }}>
+    <span className="inline-flex gap-0.5 items-center">
       {Array.from({ length: full }).map((_, i) => (
         <FullStar key={`f-${i}`} size={size} />
       ))}
@@ -91,60 +91,63 @@ const ReviewList = ({ reviews, gymNo, onDeleted }) => {
       alert("삭제에 실패했습니다.");
     }
   };
-
   if (!reviews || reviews.length === 0) {
-    return <p>등록된 리뷰가 없습니다.</p>;
+    return (
+      <div className="text-center py-8">
+        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span className="text-2xl">📝</span>
+        </div>
+        <p className="text-gray-500">등록된 리뷰가 없습니다.</p>
+      </div>
+    );
   }
 
   return (
-    <div>
+    <div className="space-y-4">
       {reviews.map((r) => (
         <div
           key={r.reviewNo}
-          style={{
-            border: "1px solid #ddd",
-            borderRadius: 8,
-            padding: "1rem",
-            marginBottom: "1rem",
-            backgroundColor: "#fafafa",
-          }}
+          className="bg-gray-50 rounded-lg p-4 border border-gray-200"
         >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              flexWrap: "wrap",
-            }}
-          >
-            <strong>{r.writerName}</strong>
-            <span style={{ marginLeft: "auto" }}>
-              {String(r.writerNo) === String(memberNo) && (
-                <button
-                  onClick={() => handleDelete(r.reviewNo)}
-                  style={{
-                    background: "red",
-                    color: "white",
-                    border: "none",
-                    borderRadius: 4,
-                    padding: "2px 6px",
-                    cursor: "pointer",
-                  }}
-                >
-                  삭제
-                </button>
-              )}
+          <div className="flex items-center justify-between flex-wrap gap-3 mb-3">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center">
+                <span className="text-sm font-semibold text-teal-700">
+                  {r.writerName?.charAt(0) || "?"}
+                </span>
+              </div>
+              <strong className="text-gray-800 font-semibold">
+                {r.writerName}
+              </strong>
+            </div>
+            {String(r.writerNo) === String(memberNo) && (
+              <button
+                onClick={() => handleDelete(r.reviewNo)}
+                className="bg-red-500 text-white text-sm px-3 py-1 rounded-md hover:bg-red-600 transition-colors"
+              >
+                삭제
+              </button>
+            )}
+          </div>
+
+          <div className="mb-3">
+            <span className="flex items-center gap-2">
+              <StarRating score={r.score} />
+              <span className="text-gray-600 font-medium">
+                ({Number(r.score).toFixed(1)})
+              </span>
             </span>
           </div>
 
-          <div style={{ marginTop: 4 }}>
-            <span>
-              <StarRating score={r.score} /> ({Number(r.score).toFixed(1)})
-            </span>
-          </div>
+          <p className="text-gray-700 whitespace-pre-wrap mb-3 leading-relaxed">
+            {r.comment}
+          </p>
 
-          <p style={{ marginTop: 8, whiteSpace: "pre-wrap" }}>{r.comment}</p>
-          <small style={{ color: "#666" }}>{formatDate(r.createdDate)}</small>
+          <div className="text-right">
+            <small className="text-gray-500 text-sm">
+              {formatDate(r.createdDate)}
+            </small>
+          </div>
         </div>
       ))}
     </div>

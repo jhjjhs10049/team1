@@ -13,9 +13,7 @@ import java.util.Map;
 @Log4j2
 public class JWTUtil {
     //생성시에 필요한 암호키를 지정하는데 길이가 짧으면 문제가 생기므로 길이가 30 이상으로 문자열 지정
-    private static String key = "1234567890123456789012345678901234567890";
-
-    //JWT 문자열 생성을 위한 generateToken()
+    private static String key = "1234567890123456789012345678901234567890";    //JWT 문자열 생성을 위한 generateToken()
     public static String generateToken(Map<String , Object> valueMap, int min){
 
         SecretKey key = null;

@@ -36,7 +36,6 @@ const ChatRoom = ({ onLeave }) => {
         isMobile ? "h-screen flex flex-col" : "max-w-7xl mx-auto px-4 py-6"
       }`}
     >
-      {" "}
       <div
         className={`flex bg-gray-50 ${
           isMobile

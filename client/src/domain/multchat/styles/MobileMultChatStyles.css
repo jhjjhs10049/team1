@@ -1,0 +1,397 @@
+/* 단체 채팅 모바일 전용 스타일 */
+
+/* 모바일 단체채팅 컨테이너 */
+@media (max-width: 767px) {
+  .mobile-multchat-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #f9fafb;
+
+    /* 성능 최적화 추가 */
+    contain: layout style paint;
+    transform: translateZ(0);
+  }
+
+  .mobile-multchat-header {
+    background-color: #14b8a6;
+    color: white;
+    padding: 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .mobile-multchat-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    text-align: center;
+  }
+
+  .mobile-multchat-participants {
+    font-size: 0.75rem;
+    text-align: center;
+    opacity: 0.9;
+  }
+
+  .mobile-multchat-connection-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.7rem;
+    margin-top: 0.25rem;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .mobile-connection-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+  }
+
+  .mobile-connection-dot.connected {
+    background-color: #10b981;
+  }
+
+  .mobile-connection-dot.disconnected {
+    background-color: #ef4444;
+  }
+
+  /* 모바일 단체채팅 메시지 영역 */
+  .mobile-multchat-message-area {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+
+    /* 스크롤 성능 최적화 */
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
+
+  /* 모바일용 단체채팅 메시지 버블 조정 */
+  .multchat-message-bubble {
+    max-width: 75vw;
+    word-break: break-word;
+  }
+
+  .multchat-message-wrapper {
+    max-width: 85%;
+    margin: 0 0.5rem;
+  }
+
+  /* 모바일 단체채팅 입력창 */
+  .multchat-input-container {
+    padding: 0.75rem;
+    background-color: white;
+    border-top: 1px solid #e5e7eb;
+    position: sticky;
+    bottom: 0;
+  }
+
+  .multchat-input-textarea {
+    min-height: 44px;
+    max-height: 120px;
+    font-size: 1rem;
+    padding: 0.75rem;
+    line-height: 1.4;
+  }
+
+  .multchat-send-button {
+    min-width: 56px;
+    min-height: 56px;
+    padding: 0.75rem;
+  }
+
+  .multchat-emoji-container {
+    margin-bottom: 0.5rem;
+    gap: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  .multchat-emoji-button {
+    width: 36px;
+    height: 36px;
+    font-size: 1.25rem;
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+  }
+
+  /* 모바일 터치 최적화 */
+  .multchat-emoji-button:active {
+    background-color: #e5e7eb;
+    transform: scale(0.95);
+  }
+
+  .multchat-send-button:active {
+    transform: scale(0.95);
+  }
+
+  /* 모바일 참가자 아바타 */
+  .multchat-profile-avatar {
+    width: 1.75rem;
+    height: 1.75rem;
+    font-size: 0.75rem;
+  }
+
+  /* 모바일 발신자 이름 */
+  .multchat-sender-name-text {
+    font-size: 0.7rem;
+    margin-bottom: 0.125rem;
+  }
+
+  /* 모바일 메시지 시간 */
+  .multchat-message-time {
+    font-size: 0.7rem;
+    margin-top: 0.125rem;
+  }
+
+  /* 모바일 시스템 메시지 */
+  .multchat-system-message-content {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.75rem;
+    margin: 0 1rem;
+  }
+
+  /* 모바일 로딩 인디케이터 */
+  .multchat-loading-indicator {
+    padding: 0.75rem 0;
+  }
+
+  .multchat-loading-content {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .multchat-loading-text {
+    font-size: 0.8rem;
+  }
+
+  /* 모바일 빈 상태 */
+  .multchat-empty-state-emoji {
+    font-size: 3rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .multchat-empty-state-title {
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .multchat-empty-state-subtitle {
+    font-size: 0.8rem;
+  }
+
+  /* 모바일 사이드바 */
+  .mobile-multchat-sidebar-toggle {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 30;
+    background-color: rgba(20, 184, 166, 0.9);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(4px);
+  }
+
+  .mobile-multchat-sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 40;
+    touch-action: none;
+  }
+
+  .mobile-multchat-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 80vw;
+    max-width: 320px;
+    background-color: white;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+    overflow-y: auto;
+  }
+
+  .mobile-multchat-sidebar.open {
+    transform: translateX(0);
+  }
+
+  /* 모바일 키보드 대응 */
+  .mobile-keyboard-visible .multchat-input-container {
+    padding-bottom: env(keyboard-inset-height, 0);
+  }
+
+  /* 모바일 스크롤 최적화 */
+  .multchat-message-list-container {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* 안전 영역 대응 */
+  .mobile-multchat-container {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* 무한 스크롤 최적화 */
+  .multchat-loading-spinner {
+    width: 1.25rem;
+    height: 1.25rem;
+    border-width: 2px;
+  }
+
+  /* 모바일 접근성 */
+  .multchat-send-button:focus,
+  .multchat-emoji-button:focus,
+  .multchat-input-textarea:focus {
+    outline: 2px solid #14b8a6;
+    outline-offset: 2px;
+  }
+
+  /* 모바일 최적화 스크롤바 */
+  .multchat-message-list-container::-webkit-scrollbar {
+    width: 2px;
+  }
+
+  .multchat-message-list-container::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .multchat-message-list-container::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 1px;
+  }
+
+  /* 참가자 목록 모바일 최적화 */
+  .mobile-participant-item {
+    padding: 0.75rem;
+    border-bottom: 1px solid #f3f4f6;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .mobile-participant-avatar {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background-color: #14b8a6;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1rem;
+  }
+
+  .mobile-participant-info {
+    flex: 1;
+  }
+
+  .mobile-participant-name {
+    font-weight: 500;
+    color: #1f2937;
+    margin-bottom: 0.125rem;
+  }
+
+  .mobile-participant-status {
+    font-size: 0.75rem;
+    color: #6b7280;
+  }
+
+  .mobile-participant-online {
+    width: 0.75rem;
+    height: 0.75rem;
+    background-color: #10b981;
+    border-radius: 50%;
+  }
+}
+
+/* 아이폰 X 이상 대응 */
+@supports (padding: max(0px)) {
+  @media (max-width: 767px) {
+    .mobile-multchat-container {
+      padding-top: max(env(safe-area-inset-top), 1rem);
+      padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+    }
+
+    .multchat-input-container {
+      padding-bottom: max(env(safe-area-inset-bottom), 0.75rem);
+    }
+  }
+}
+
+/* 가로모드 모바일 */
+@media (max-width: 767px) and (orientation: landscape) {
+  .mobile-multchat-header {
+    padding: 0.5rem 1rem;
+  }
+
+  .mobile-multchat-title {
+    font-size: 1rem;
+  }
+
+  .mobile-multchat-participants {
+    font-size: 0.7rem;
+  }
+
+  .multchat-emoji-container {
+    display: none; /* 가로모드에서는 이모지 버튼 숨김 */
+  }
+
+  .multchat-input-textarea {
+    min-height: 40px;
+    max-height: 80px;
+  }
+
+  .multchat-send-button {
+    min-width: 48px;
+    min-height: 48px;
+  }
+
+  .mobile-multchat-sidebar-toggle {
+    width: 40px;
+    height: 40px;
+    top: 0.5rem;
+    left: 0.5rem;
+  }
+}
+
+/* 태블릿 대응 */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .multchat-message-wrapper {
+    max-width: 75%;
+  }
+
+  .multchat-emoji-button {
+    width: 2.25rem;
+    height: 2.25rem;
+    font-size: 1.125rem;
+  }
+
+  .multchat-input-textarea {
+    padding: 0.875rem 1rem;
+  }
+
+  .multchat-send-button {
+    padding: 0.875rem 1rem;
+  }
+}

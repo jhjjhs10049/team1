@@ -1,0 +1,337 @@
+/* 1대1 채팅 메시지 리스트 컴포넌트 스타일 */
+
+/* 성능 최적화 import */
+@import '../../../common/styles/ChatThemeVariables.css';
+@import '../../../common/styles/ChatPerformanceOptimization.css';
+
+/* 메인 컨테이너 */
+.message-list-container {
+  flex: 1;
+  overflow-y: auto;
+  background-color: #f9fafb;
+  
+  /* 성능 최적화 추가 */
+  contain: layout style paint;
+  will-change: scroll-position;
+}
+
+.message-list-content {
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .message-list-content {
+    padding: 1rem;
+  }
+}
+
+/* 채팅 시작 안내 메시지 */
+.chat-start-notice {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 640px) {
+  .chat-start-notice {
+    margin-bottom: 1.5rem;
+  }
+}
+
+.chat-start-notice-content {
+  background-color: #ccfbf1;
+  color: #0f766e;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  max-width: 90%;
+  text-align: center;
+}
+
+@media (min-width: 640px) {
+  .chat-start-notice-content {
+    padding: 1rem;
+  }
+}
+
+.chat-start-notice-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/* 메시지 컨테이너 */
+.message-item {
+  display: flex;
+  margin-bottom: 0.75rem;
+  
+  /* 성능 최적화 */
+  contain: layout style;
+}
+
+.message-item.own {
+  justify-content: flex-end;
+}
+
+.message-item.other {
+  justify-content: flex-start;
+}
+
+.message-wrapper {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  max-width: 70%;
+}
+
+.message-wrapper.own {
+  flex-direction: row-reverse;
+}
+
+.message-wrapper.other {
+  flex-direction: row;
+}
+
+/* 프로필 아바타 */
+.profile-avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.profile-avatar.user {
+  background-color: #14b8a6;
+}
+
+.profile-avatar.admin {
+  background-color: #059669;
+}
+
+/* 메시지 내용 영역 */
+.message-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.message-content.own {
+  align-items: flex-end;
+}
+
+.message-content.other {
+  align-items: flex-start;
+}
+
+/* 발신자 이름 */
+.sender-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.sender-name {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.sender-name.user {
+  color: #0f766e;
+}
+
+.sender-name.admin {
+  color: #059669;
+}
+
+.admin-badge {
+  font-size: 0.75rem;
+  background-color: #dcfdf7;
+  color: #065f46;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+}
+
+/* 메시지 버블 */
+.message-bubble {
+  padding: 0.75rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.message-bubble.own {
+  background-color: #14b8a6;
+  color: white;
+  border-radius: 1rem 0.25rem 1rem 1rem;
+}
+
+.message-bubble.admin {
+  background-color: #dcfdf7;
+  color: #064e3b;
+  border-radius: 0.25rem 1rem 1rem 1rem;
+  border: 1px solid #a7f3d0;
+}
+
+.message-bubble.other {
+  background-color: #f3f4f6;
+  color: #1f2937;
+  border-radius: 0.25rem 1rem 1rem 1rem;
+  border: 1px solid #e5e7eb;
+}
+
+.message-text {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* 메시지 시간 */
+.message-time {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+.message-time.own {
+  text-align: right;
+}
+
+.message-time.other {
+  text-align: left;
+}
+
+/* 시스템 메시지 */
+.system-message {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.system-message-content {
+  background-color: #f3f4f6;
+  color: #6b7280;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+}
+
+.system-message-inner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* 빈 메시지 상태 */
+.empty-state {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f9fafb;
+}
+
+.empty-state-content {
+  text-align: center;
+}
+
+.empty-state-emoji {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.empty-state-title {
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.empty-state-subtitle {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  margin-bottom: 1rem;
+}
+
+/* 대기 상태 */
+.waiting-state {
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.waiting-subtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 1rem;
+}
+
+.waiting-indicator {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem;
+  background-color: #fef3c7;
+  color: #92400e;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+}
+
+.waiting-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  background-color: #eab308;
+  border-radius: 50%;
+  margin-right: 0.5rem;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* 스크롤 앵커 */
+.scroll-anchor {
+  height: 1px;
+}
+
+/* 애니메이션 */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* 모바일 반응형 */
+@media (max-width: 639px) {
+  .message-list-content {
+    padding: 0.75rem;
+  }
+  
+  .message-wrapper {
+    max-width: 85%;
+  }
+  
+  .message-bubble {
+    padding: 0.5rem 0.75rem;
+  }
+  
+  .message-text {
+    font-size: 0.8rem;
+  }
+  
+  .profile-avatar {
+    width: 1.75rem;
+    height: 1.75rem;
+    font-size: 0.75rem;
+  }
+  
+  .empty-state-emoji {
+    font-size: 3rem;
+  }
+}

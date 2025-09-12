@@ -20,7 +20,7 @@ const useWebSocket = (username) => {
       // 웹소켓 URL 동적 생성 (로컬/서버 환경에 따라 프로토콜 자동 결정)
       const wsHost =
         window.location.hostname === "localhost"
-          ? "localhost:8022"
+          ? "localhost:8080"
           : window.location.host;
       const wsProtocol =
         window.location.protocol === "https:" ? "https:" : "http:";

@@ -12,6 +12,7 @@ const FavoriteGymsPage = () => {
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
   useEffect(() => {
     console.log("FavoriteGymsPage: useEffect 실행");
     console.log("FavoriteGymsPage: loginState:", loginState);
@@ -42,11 +43,14 @@ const FavoriteGymsPage = () => {
         setLoading(false);
       });
   }, [loginState]);
+
   if (loading)
     return (
       <BasicLayout>
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center">로딩 중...</div>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-100">
+            <div className="text-center">로딩 중...</div>
+          </div>
         </div>
       </BasicLayout>
     );
@@ -54,8 +58,10 @@ const FavoriteGymsPage = () => {
   if (error)
     return (
       <BasicLayout>
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-red-600 text-center">오류: {error}</div>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-100">
+            <div className="text-red-600 text-center">오류: {error}</div>
+          </div>
         </div>
       </BasicLayout>
     );
@@ -63,113 +69,109 @@ const FavoriteGymsPage = () => {
   if (!loginState?.memberNo)
     return (
       <BasicLayout>
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center">로그인 정보를 확인하는 중...</div>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-100">
+            <div className="text-center">로그인 정보를 확인하는 중...</div>
+          </div>
         </div>
       </BasicLayout>
     );
 
   return (
     <BasicLayout>
-      <div style={styles.container}>
-        <h1 style={styles.title}>⭐ 나의 즐겨찾기</h1>
-        {favorites.length === 0 ? (
-          <div style={styles.empty}>즐겨찾기한 헬스장이 없습니다.</div>
-        ) : (
-          <ul style={styles.list}>
-            {favorites.map((gym) => (
-              <li
-                key={gym.gymNo}
-                style={styles.item}
-                onClick={() => navigate(`/gyms/detail/${gym.gymNo}`)}
-              >
-                <img
-                  src={gym.imageUrl || "/dumbbell.svg"}
-                  alt={gym.title}
-                  style={styles.image}
-                  onError={(e) => {
-                    e.target.src = "/dumbbell.svg"; // 로컬 fallback 이미지
-                    e.target.onerror = null; // 무한 루프 방지
-                  }}
-                />
-                <div style={styles.content}>
-                  <div style={styles.titleRow}>
-                    <h3 style={styles.gymTitle}>{gym.title}</h3>
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="w-full max-w-6xl mx-auto px-4">
+          {/* 페이지 헤더 */}
+          <div className="bg-white rounded-lg p-8 shadow-sm border border-gray-100 mb-8">
+            <h1 className="text-3xl font-bold text-center bg-gradient-to-r from-yellow-500 to-orange-600 bg-clip-text text-transparent">
+              ⭐ 나의 즐겨찾기
+            </h1>
+            <div className="mt-4 text-center">
+              <div className="w-16 h-1 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full mx-auto"></div>
+            </div>
+          </div>
+
+          {favorites.length === 0 ? (
+            <div className="bg-white rounded-lg p-12 shadow-sm border border-gray-100 text-center">
+              <div className="text-gray-400 text-6xl mb-4">⭐</div>
+              <p className="text-gray-500 text-lg mb-4">
+                즐겨찾기한 헬스장이 없습니다.
+              </p>
+              <p className="text-gray-400 text-sm">
+                헬스장 상세 페이지에서 즐겨찾기를 추가해보세요!
+              </p>
+            </div>
+          ) : (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-100">
+
+              <div className="p-6">
+                <div className="grid gap-4">
+                  {favorites.map((gym) => (
                     <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "5px",
-                      }}
+                      key={gym.gymNo}
+                      className="bg-gray-50 border border-gray-200 rounded-xl p-6 hover:bg-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer group"
+                      onClick={() => navigate(`/gyms/detail/${gym.gymNo}`)}
                     >
-                      <StarRating score={gym.rate} size={14} />
-                      <span style={styles.rateText}>
-                        ({Number(gym.rate).toFixed(1)})
-                      </span>
+                      <div className="flex items-center gap-4">
+                        <div className="relative">
+                          <img
+                            src={gym.imageUrl || "/dumbbell.svg"}
+                            alt={gym.title}
+                            className="w-20 h-20 rounded-lg object-cover border border-gray-200 group-hover:scale-105 transition-transform duration-200"
+                            onError={(e) => {
+                              e.target.src = "/dumbbell.svg";
+                              e.target.onerror = null;
+                            }}
+                          />
+                          <div className="absolute -top-2 -right-2 bg-yellow-400 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+                            ⭐
+                          </div>
+                        </div>
+
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-lg font-bold text-gray-800 group-hover:text-teal-600 transition-colors">
+                              {gym.title}
+                            </h3>
+                            <div className="flex items-center gap-2">
+                              <StarRating score={gym.rate} size={16} />
+                              <span className="text-sm text-gray-600 font-medium">
+                                ({Number(gym.rate).toFixed(1)})
+                              </span>
+                            </div>
+                          </div>
+                          <p className="text-gray-600 flex items-center gap-2">
+                            <span className="text-gray-400">📍</span>
+                            {gym.address}
+                          </p>
+                        </div>
+
+                        <div className="text-gray-400 group-hover:text-teal-500 transition-colors">
+                          <svg
+                            className="w-6 h-6"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 5l7 7-7 7"
+                            />
+                          </svg>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <p style={styles.address}>{gym.address}</p>
+                  ))}
                 </div>
-              </li>
-            ))}
-          </ul>
-        )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </BasicLayout>
   );
-};
-
-const styles = {
-  container: {
-    maxWidth: "500px",
-    margin: "0 auto",
-    padding: "1.5rem",
-    fontFamily: "sans-serif",
-    border: "1px solid #ddd",
-    borderRadius: "10px",
-    boxShadow: "0 4px 8px rgba(0,0,0,0.05)",
-    backgroundColor: "#fff",
-  },
-  title: {
-    fontSize: "1.8rem",
-    marginBottom: "1.5rem",
-    textAlign: "center",
-    color: "#333",
-  },
-  list: { listStyle: "none", padding: 0 },
-  item: {
-    display: "flex",
-    alignItems: "center",
-    padding: "1rem",
-    border: "1px solid #eee",
-    borderRadius: "8px",
-    marginBottom: "1rem",
-    cursor: "pointer",
-    transition: "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
-  },
-  image: {
-    width: "80px",
-    height: "80px",
-    borderRadius: "8px",
-    objectFit: "cover",
-    marginRight: "1rem",
-  },
-  content: { flex: 1 },
-  titleRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "5px",
-  },
-  gymTitle: { fontSize: "1.1rem", margin: 0, fontWeight: "bold" },
-  rateText: { fontSize: "0.9rem", color: "#777" },
-  address: { margin: 0, fontSize: "0.9rem", color: "#555" },
-  empty: {
-    textAlign: "center",
-    padding: "2rem",
-    color: "#888",
-    fontSize: "1.1rem",
-  },
 };
 
 export default FavoriteGymsPage;

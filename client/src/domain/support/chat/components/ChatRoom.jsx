@@ -53,7 +53,7 @@ const ChatRoom = ({ chatRoomId, isAdmin = false }) => {
 
   return (
     <div className="flex h-full bg-gray-100 overflow-hidden relative">
-      {/* 모바일 사이드바 배경 오버레이 */}{" "}
+      {/* 모바일 사이드바 배경 오버레이 */}
       {isMobile && showSidebar && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"

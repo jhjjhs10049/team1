@@ -5,7 +5,7 @@ import useForcedLogoutListener from "../common/hooks/useForcedLogoutListener.jsx
 import useTokenExpiryChecker from "../common/hooks/useTokenExpiryChecker.jsx";
 import useNavigationTokenChecker from "../common/hooks/useNavigationTokenChecker.jsx";
 
-const BasicLayout = ({ children }) => {
+const BasicLayout = ({ children, noMargin = false }) => {
   // 전역 강제 로그아웃 리스너 활성화
   useForcedLogoutListener();
 
@@ -19,7 +19,9 @@ const BasicLayout = ({ children }) => {
     <>
       <ScrollToTop />
       <BasicMenu />
-      <div className="bg-white py-8 w-full flex flex-col">
+      <div
+        className={`bg-white w-full flex flex-col ${noMargin ? "" : "py-8"}`}
+      >
         <main className="min-h-screen">{children}</main>
       </div>
       <Footer />

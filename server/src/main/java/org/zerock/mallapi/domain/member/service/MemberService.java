@@ -45,9 +45,7 @@ public interface MemberService {
     void promoteToManager(String email);
     
     // 특정 회원의 MANAGER 권한 해제
-    void demoteFromManager(String email);
-    
-    //회원 정보는 MemberDTO 타입으로 처리되어야 하므로 Member 엔티티 객체를 MemberDTO 객체로 변환
+    void demoteFromManager(String email);    //회원 정보는 MemberDTO 타입으로 처리되어야 하므로 Member 엔티티 객체를 MemberDTO 객체로 변환
     default MemberDTO entityToDTO(Member member){
         MemberDTO dto = new MemberDTO(
                 member.getEmail(),

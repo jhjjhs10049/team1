@@ -120,7 +120,8 @@ const LoginComponent = () => {
           />
         </div>
         <button
-          className="w-full bg-teal-500 hover:bg-teal-600 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200"
+          className="w-full bg-teal-500 hover:bg-teal-600 text-white font-medium 
+          py-3 px-4 rounded-lg transition-colors duration-200"
           onClick={handleClickLogin}
         >
           로그인
@@ -151,3 +152,7 @@ const LoginComponent = () => {
 };
 
 export default LoginComponent;
+
+
+
+

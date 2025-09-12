@@ -35,44 +35,52 @@ const ReviewForm = ({ gymNo, disabled, onSubmitted }) => {
       setLoading(false);
     }
   };
-
   return (
-    <form onSubmit={handleSubmit}>
-      <h3>리뷰 작성</h3>
-      <div style={{ marginBottom: "1rem" }}>
-        <label>평점: </label>
-        <select
-          value={rating}
-          onChange={(e) => setRating(Number(e.target.value))}
-          disabled={disabled}
-        >
-          {[5, 4, 3, 2, 1].map((r) => (
-            <option key={r} value={r}>
-              {r}점
-            </option>
-          ))}
-        </select>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-3">
+        <span className="text-xl">✍️</span>
+        리뷰 작성
+      </h3>
+
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            평점
+          </label>
+          <select
+            value={rating}
+            onChange={(e) => setRating(Number(e.target.value))}
+            disabled={disabled}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          >
+            {[5, 4, 3, 2, 1].map((r) => (
+              <option key={r} value={r}>
+                {r}점
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            리뷰 내용
+          </label>
+          <textarea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            rows={4}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            placeholder="리뷰 내용을 입력하세요..."
+            required
+            disabled={disabled}
+          />
+        </div>
       </div>
-      <textarea
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        rows={4}
-        style={{ width: "100%", marginBottom: "1rem" }}
-        placeholder="리뷰 내용을 입력하세요..."
-        required
-        disabled={disabled}
-      />
+
       <button
         type="submit"
         disabled={disabled || loading}
-        style={{
-          padding: "0.5rem 1rem",
-          backgroundColor: "#3F75FF",
-          color: "#fff",
-          border: "none",
-          borderRadius: "6px",
-          cursor: "pointer",
-        }}
+        className="w-full px-4 py-3 bg-teal-500 text-white border-0 rounded-lg cursor-pointer hover:bg-teal-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
       >
         {loading ? "저장 중..." : "리뷰 제출"}
       </button>

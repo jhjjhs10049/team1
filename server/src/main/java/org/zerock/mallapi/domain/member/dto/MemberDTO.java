@@ -131,8 +131,7 @@ public class MemberDTO extends User  {
     }
     public void setJoinedDate(LocalDateTime joinedDate) {
         this.joinedDate = joinedDate;
-    }    
-    // 현재 사용자의 정보를 Map 타입으로 반환(이후에 JWT 문자열 생성시에 사용)
+    }    // 현재 사용자의 정보를 Map 타입으로 반환(이후에 JWT 문자열 생성시에 사용)
     public Map<String , Object> getClaims() {
         Map<String, Object> dataMap = new HashMap<>();
         dataMap.put("memberNo", memberNo);

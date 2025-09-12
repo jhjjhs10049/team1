@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useCallback, useState } from "react";
 import { formatTime } from "../utils/timeUtils";
 import { MULTCHAT_CONFIG } from "../../../common/config/pageConfig";
+import "../styles/MessageList.css";
+import "../styles/MobileMultChatStyles.css";
 
 const MessageList = ({
   messages,
@@ -89,9 +91,9 @@ const MessageList = ({
           key={`system-${message.no || index}-${
             message.createdAt || Date.now()
           }-${index}`}
-          className="flex justify-center mb-3"
+          className="multchat-system-message"
         >
-          <div className="bg-gray-100 border border-gray-200 rounded-full px-4 py-2 text-sm text-gray-600 text-center flex items-center space-x-2">
+          <div className="multchat-system-message-content">
             <span>
               {message.messageType === "JOIN" && "👋"}
               {message.messageType === "LEAVE" && "👋"}
@@ -108,49 +110,35 @@ const MessageList = ({
         key={`msg-${message.no || index}-${
           message.createdAt || Date.now()
         }-${index}`}
-        className={`flex mb-3 ${isOwn ? "justify-end" : "justify-start"}`}
+        className={`multchat-message-item ${isOwn ? "own" : "other"}`}
       >
-        <div
-          className={`flex ${
-            isOwn ? "flex-row-reverse" : "flex-row"
-          } items-end space-x-2 max-w-[70%]`}
-        >
+        <div className={`multchat-message-wrapper ${isOwn ? "own" : "other"}`}>
           {/* 프로필 아바타 */}
           {!isOwn && (
-            <div className="w-8 h-8 rounded-full bg-teal-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+            <div className="multchat-profile-avatar">
               {message.senderNickname?.charAt(0).toUpperCase() || "?"}
             </div>
           )}
 
           <div
-            className={`flex flex-col ${isOwn ? "items-end" : "items-start"}`}
+            className={`multchat-message-content ${isOwn ? "own" : "other"}`}
           >
             {/* 발신자 이름 */}
             {!isOwn && (
-              <div className="mb-1">
-                <span className="text-xs text-gray-500 font-medium">
+              <div className="multchat-sender-name">
+                <span className="multchat-sender-name-text">
                   {message.senderNickname}
                 </span>
               </div>
             )}
             {/* 메시지 버블 */}
             <div
-              className={`px-3 py-2 rounded-lg shadow-sm ${
-                isOwn
-                  ? "bg-teal-500 text-white rounded-br-sm"
-                  : "bg-white border border-gray-200 text-gray-900 rounded-bl-sm"
-              }`}
+              className={`multchat-message-bubble ${isOwn ? "own" : "other"}`}
             >
-              <div className="text-sm leading-relaxed whitespace-pre-wrap break-words">
-                {message.content}
-              </div>
+              <div className="multchat-message-text">{message.content}</div>
             </div>
             {/* 시간 */}
-            <div
-              className={`text-xs mt-1 text-gray-400 ${
-                isOwn ? "text-right" : "text-left"
-              }`}
-            >
+            <div className={`multchat-message-time ${isOwn ? "own" : "other"}`}>
               {formatTime(message.createdAt || message.timestamp)}
             </div>
           </div>
@@ -160,11 +148,13 @@ const MessageList = ({
   };
   if (!messages || messages.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-center">
-          <div className="text-4xl mb-4">💬</div>
-          <p className="text-gray-500 mb-2">아직 메시지가 없습니다.</p>
-          <p className="text-sm text-gray-400">첫 메시지를 보내보세요!</p>
+      <div className="multchat-empty-state">
+        <div className="multchat-empty-state-content">
+          <div className="multchat-empty-state-emoji">💬</div>
+          <p className="multchat-empty-state-title">아직 메시지가 없습니다.</p>
+          <p className="multchat-empty-state-subtitle">
+            첫 메시지를 보내보세요!
+          </p>
         </div>
       </div>
     );
@@ -172,33 +162,33 @@ const MessageList = ({
   return (
     <div
       ref={messagesContainerRef}
-      className="h-full overflow-y-auto"
+      className="multchat-message-list-container optimized-scroll hardware-accelerated"
       onScroll={handleScroll}
     >
-      <div className="space-y-1 p-4 pb-4">
+      <div className="multchat-message-list-content">
         {/* 로딩 인디케이터 (상단에 표시) */}
         {loadingMore && (
-          <div className="flex justify-center py-4">
-            <div className="flex items-center space-x-2 bg-gray-100 px-4 py-2 rounded-full">
-              <div className="animate-spin w-4 h-4 border-2 border-teal-500 border-t-transparent rounded-full"></div>
-              <span className="text-sm text-gray-600">
+          <div className="multchat-loading-indicator">
+            <div className="multchat-loading-content">
+              <div className="multchat-loading-spinner"></div>
+              <span className="multchat-loading-text">
                 이전 메시지 로드 중...
               </span>
             </div>
           </div>
         )}
-
         {/* 더 이상 로드할 메시지가 없을 때 표시 */}
         {!hasMoreMessages && messages.length > 0 && (
-          <div className="flex justify-center py-4">
-            <div className="bg-gray-100 px-4 py-2 rounded-full">
-              <span className="text-sm text-gray-500">처음 메시지입니다</span>
+          <div className="multchat-message-end">
+            <div className="multchat-message-end-content">
+              <span className="multchat-message-end-text">
+                처음 메시지입니다
+              </span>
             </div>
           </div>
         )}
-
         {messages.map((message, index) => renderMessage(message, index))}
-        <div ref={messagesEndRef} className="h-1" />
+        <div ref={messagesEndRef} className="multchat-scroll-anchor" />
       </div>
     </div>
   );

@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useCallback, useState } from "react";
+import "../styles/MessageList.css";
+import "../styles/MobileChatStyles.css";
 
 const MessageList = ({ messages, currentUserNickname, chatRoom }) => {
   const messagesEndRef = useRef(null);
@@ -66,12 +68,11 @@ const MessageList = ({ messages, currentUserNickname, chatRoom }) => {
     const isOwn = message.senderNickname === currentUserNickname;
     const isSystem = message.messageType === "SYSTEM";
     const isAdmin = message.messageType === "ADMIN";
-
     if (isSystem) {
       return (
-        <div key={index} className="flex justify-center mb-4">
-          <div className="bg-gray-100 text-gray-600 px-4 py-2 rounded-full text-sm">
-            <div className="flex items-center space-x-2">
+        <div key={index} className="system-message">
+          <div className="system-message-content">
+            <div className="system-message-inner">
               <span>ℹ️</span>
               <span>{message.message}</span>
             </div>
@@ -83,66 +84,35 @@ const MessageList = ({ messages, currentUserNickname, chatRoom }) => {
     return (
       <div
         key={index}
-        className={`flex mb-3 ${isOwn ? "justify-end" : "justify-start"}`}
+        className={`message-item ${isOwn ? "own" : "other"} layout-stable`}
       >
-        {" "}
-        <div
-          className={`flex ${
-            isOwn ? "flex-row-reverse" : "flex-row"
-          } items-end space-x-2 max-w-[70%]`}
-        >
-          {" "}
+        <div className={`message-wrapper ${isOwn ? "own" : "other"}`}>
           {/* 프로필 아바타 */}
           {!isOwn && (
-            <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 ${
-                isAdmin ? "bg-green-500" : "bg-teal-500"
-              }`}
-            >
+            <div className={`profile-avatar ${isAdmin ? "admin" : "user"}`}>
               {message.senderNickname?.charAt(0).toUpperCase() || "?"}
             </div>
           )}
-          <div
-            className={`flex flex-col ${isOwn ? "items-end" : "items-start"}`}
-          >
-            {" "}
+          <div className={`message-content ${isOwn ? "own" : "other"}`}>
             {/* 발신자 이름 */}
             {!isOwn && (
-              <div className="flex items-center space-x-2 mb-1">
-                <span
-                  className={`text-xs font-medium ${
-                    isAdmin ? "text-green-600" : "text-teal-600"
-                  }`}
-                >
+              <div className="sender-info">
+                <span className={`sender-name ${isAdmin ? "admin" : "user"}`}>
                   {message.senderNickname}
                 </span>
-                {isAdmin && (
-                  <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
-                    상담원
-                  </span>
-                )}
+                {isAdmin && <span className="admin-badge">상담원</span>}
               </div>
-            )}{" "}
+            )}
             {/* 메시지 버블 */}
             <div
-              className={`px-3 py-2 shadow-sm ${
-                isOwn
-                  ? "bg-teal-500 text-white rounded-l-lg rounded-tr-lg"
-                  : isAdmin
-                  ? "bg-green-100 text-green-800 rounded-r-lg rounded-tl-lg border border-green-200"
-                  : "bg-gray-100 text-gray-800 rounded-r-lg rounded-tl-lg border border-gray-200"
+              className={`message-bubble ${
+                isOwn ? "own" : isAdmin ? "admin" : "other"
               }`}
             >
-              <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
-                {message.message}
-              </p>
+              <p className="message-text">{message.message}</p>
             </div>
             {/* 시간 */}
-            <div
-              className={`text-xs text-gray-500 mt-1 ${
-                isOwn ? "text-right" : "text-left"
-              }`}
-            >
+            <div className={`message-time ${isOwn ? "own" : "other"}`}>
               {formatTime(message.sentAt)}
             </div>
           </div>
@@ -152,27 +122,25 @@ const MessageList = ({ messages, currentUserNickname, chatRoom }) => {
   };
   if (!messages || messages.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-gray-50">
-        <div className="text-center">
+      <div className="empty-state">
+        <div className="empty-state-content">
           {chatRoom?.status === "WAITING" ? (
             <>
-              <div className="text-4xl mb-4">⏰</div>
-              <p className="text-gray-600 mb-2 font-semibold">
-                상담원 배정 대기 중
-              </p>
-              <p className="text-sm text-gray-500 mb-4">
+              <div className="empty-state-emoji">⏰</div>
+              <p className="waiting-state">상담원 배정 대기 중</p>
+              <p className="waiting-subtitle">
                 상담원이 배정되면 채팅을 시작할 수 있습니다.
               </p>
-              <div className="inline-flex items-center px-3 py-2 bg-yellow-100 text-yellow-800 rounded-full text-sm">
-                <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2 animate-pulse"></div>
+              <div className="waiting-indicator">
+                <div className="waiting-dot"></div>
                 대기 중...
               </div>
             </>
           ) : (
             <>
-              <div className="text-4xl mb-4">💬</div>
-              <p className="text-gray-500 mb-2">아직 메시지가 없습니다.</p>
-              <p className="text-sm text-gray-400">첫 메시지를 보내보세요!</p>
+              <div className="empty-state-emoji">💬</div>
+              <p className="empty-state-title">아직 메시지가 없습니다.</p>
+              <p className="empty-state-subtitle">첫 메시지를 보내보세요!</p>
             </>
           )}
         </div>
@@ -182,14 +150,14 @@ const MessageList = ({ messages, currentUserNickname, chatRoom }) => {
   return (
     <div
       ref={messageContainerRef}
-      className="flex-1 overflow-y-auto bg-gray-50"
+      className="message-list-container optimized-scroll hardware-accelerated"
       onScroll={handleScroll}
     >
-      <div className="p-3 sm:p-4 space-y-3">
+      <div className="message-list-content">
         {/* 채팅 시작 안내 메시지 */}
-        <div className="flex justify-center mb-4 sm:mb-6">
-          <div className="bg-teal-100 text-teal-700 px-3 py-2 sm:px-4 rounded-lg text-sm max-w-[90%] text-center">
-            <div className="flex items-center justify-center space-x-2">
+        <div className="chat-start-notice">
+          <div className="chat-start-notice-content">
+            <div className="chat-start-notice-inner">
               <span>💬</span>
               <span>1대1 상담이 시작되었습니다.</span>
             </div>
@@ -200,7 +168,7 @@ const MessageList = ({ messages, currentUserNickname, chatRoom }) => {
         {messages.map((message, index) => renderMessage(message, index))}
 
         {/* 스크롤 앵커 */}
-        <div ref={messagesEndRef} />
+        <div ref={messagesEndRef} className="scroll-anchor" />
       </div>
     </div>
   );

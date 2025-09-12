@@ -31,7 +31,7 @@ const ChatRoomMain = ({
           participantCount={participantCount}
           isWebSocketConnected={isWebSocketConnected}
         />
-      )}{" "}
+      )}
       {/* 메시지 목록 - 이 영역이 스크롤 */}
       <div className="flex-1 min-h-0 bg-gray-50 overflow-hidden">
         <MessageList
@@ -41,7 +41,7 @@ const ChatRoomMain = ({
           hasMoreMessages={hasMoreMessages}
           loadingMore={loadingMore}
         />
-      </div>{" "}
+      </div>
       {/* 메시지 입력 - 하단 고정 */}
       <div className="flex-shrink-0 w-full">
         <MessageInput

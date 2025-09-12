@@ -1,0 +1,205 @@
+/* 채팅 성능 최적화 CSS */
+
+/* GPU 가속 활성화 */
+.hardware-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* 스크롤 성능 최적화 */
+.optimized-scroll {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
+}
+
+/* 애니메이션 성능 최적화 */
+.optimized-animation {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+
+.optimized-animation.complete {
+  will-change: auto;
+}
+
+/* 메시지 리스트 가상화 최적화 */
+.message-list-virtualized {
+  height: 100%;
+  overflow-y: auto;
+  contain: layout style paint;
+}
+
+.message-item-virtualized {
+  contain: layout style;
+  will-change: transform;
+}
+
+/* 이미지 로딩 최적화 */
+.lazy-image {
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.lazy-image.loaded {
+  opacity: 1;
+}
+
+/* 터치 응답 최적화 */
+.touch-optimized {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.touch-feedback:active {
+  transform: scale(0.98);
+  transition: transform 0.1s ease-out;
+}
+
+/* 메모리 사용량 최적화 */
+.memory-optimized {
+  contain: strict;
+  content-visibility: auto;
+  contain-intrinsic-size: 0 500px;
+}
+
+/* 로딩 스켈레톤 */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* 텍스트 렌더링 최적화 */
+.optimized-text {
+  text-rendering: optimizeSpeed;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 리플로우 최소화 */
+.layout-stable {
+  contain: layout;
+  min-height: 0;
+  min-width: 0;
+}
+
+/* 배치 업데이트 최적화 */
+.batch-update {
+  will-change: contents;
+}
+
+/* 웹소켓 데이터 로딩 상태 */
+.websocket-loading {
+  position: relative;
+  pointer-events: none;
+}
+
+.websocket-loading::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* CSS 컨테인먼트 */
+.chat-container {
+  contain: layout style paint;
+}
+
+.message-bubble {
+  contain: layout style;
+}
+
+.emoji-picker {
+  contain: layout style paint;
+}
+
+/* 프리로딩 최적화 */
+.preload-critical {
+  font-display: swap;
+}
+
+/* 모바일 최적화 */
+@media (max-width: 767px) {
+  .mobile-optimized {
+    transform: translateZ(0);
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mobile-scroll-container {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
+
+  /* 모바일에서 hover 효과 제거 */
+  .no-mobile-hover {
+    pointer-events: auto;
+  }
+
+  .no-mobile-hover:hover {
+    /* 모바일에서 hover 스타일 무효화 */
+    background-color: inherit;
+    color: inherit;
+    transform: none;
+    opacity: inherit;
+  }
+}
+
+/* 접근성 최적화 */
+@media (prefers-reduced-motion: reduce) {
+  .respect-reduced-motion,
+  .respect-reduced-motion * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* 배터리 절약 모드 */
+@media (prefers-reduced-data: reduce) {
+  .data-saving .lazy-image {
+    display: none;
+  }
+
+  .data-saving .emoji-picker {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+}
+
+/* 사용량이 많은 컴포넌트 최적화 */
+.frequently-updated {
+  isolation: isolate;
+  contain: layout style paint;
+}
+
+/* 크리티컬 렌더링 패스 최적화 */
+.critical-path {
+  content-visibility: visible;
+  contain-intrinsic-size: none;
+}
+
+.non-critical-path {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 200px;
+}

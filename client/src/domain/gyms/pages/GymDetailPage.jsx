@@ -25,14 +25,11 @@ const GymDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const handleScrollTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
   const handleGoReviews = () => navigate(`/gyms/${gym.gymNo}/reviews`);
-  // ProtectedButton으로 로그인 체크를 위임했으므로,
-  // 핸들러 함수에서는 로그인 체크 로직을 제거합니다.
-  const handleToggleFavorite = () => {
-    const memberNo = loginState?.memberNo; // 회원 번호 가져오기
 
-    // memberNo가 없으면 API 호출하지 않고 종료 (ProtectedButton이 이미 로그인 체크를 했으므로 발생 가능성 낮음)
+  const handleToggleFavorite = () => {
+    const memberNo = loginState?.memberNo;
+
     if (!memberNo) {
       alert("회원 정보가 없습니다.");
       return;
@@ -88,235 +85,250 @@ const GymDetailPage = () => {
     };
   }, [gymno, loginState?.memberNo]);
 
-  if (loading) return <div>로딩 중...</div>;
-  if (error) return <div>{error}</div>;
-  if (!gym) return <div>데이터가 없습니다.</div>;
+  if (loading)
+    return (
+      <BasicLayout>
+        <div className="flex justify-center items-center min-h-screen">
+          <div className="text-lg text-gray-600">로딩 중...</div>
+        </div>
+      </BasicLayout>
+    );
+
+  if (error)
+    return (
+      <BasicLayout>
+        <div className="flex justify-center items-center min-h-screen">
+          <div className="text-lg text-red-600">{error}</div>
+        </div>
+      </BasicLayout>
+    );
+
+  if (!gym)
+    return (
+      <BasicLayout>
+        <div className="flex justify-center items-center min-h-screen">
+          <div className="text-lg text-gray-600">데이터가 없습니다.</div>
+        </div>
+      </BasicLayout>
+    );
 
   const safeRate = Number.isFinite(gym.rate) ? gym.rate : 0;
 
   return (
     <BasicLayout>
-      <div style={styles.container}>
-        {/* 이미지 슬라이드 */}
-        {images.length > 0 ? (
-          <Swiper
-            modules={[Navigation]}
-            navigation
-            spaceBetween={10}
-            slidesPerView={1}
-            style={styles.swiper}
-          >
-            {images.map((img, idx) => (
-              <SwiperSlide key={idx}>
-                <img
-                  src={
-                    img.startsWith("http")
-                      ? img
-                      : `${API_SERVER_HOST}/api/files/view/${encodeURIComponent(
-                          img
-                        )}`
-                  }
-                  alt={`gym-img-${idx}`}
-                  style={styles.img}
-                />
-              </SwiperSlide>
-            ))}
-          </Swiper>
-        ) : (
-          <p>등록된 이미지가 없습니다.</p>
-        )}
-
-        {/* 타이틀 + 관심표시 */}
-        <div style={styles.titleRow}>
-          <h2 style={{ margin: 0, fontSize: "1.3rem" }}>{gym.title}</h2>
-          {/* ProtectedButton으로 즐겨찾기 버튼 감싸기 */}
-          <ProtectedButton
-            onClick={handleToggleFavorite}
-            redirectMessage="즐겨찾기 기능은 로그인 후 이용 가능합니다."
-            style={styles.favoriteIcon}
-            title={isFavorite ? "즐겨찾기 해제" : "즐겨찾기 등록"}
-          >
-            {isFavorite ? "⭐" : "☆"} {favoriteCount}
-          </ProtectedButton>
-        </div>
-
-        {/* 기본 정보 */}
-        <div style={styles.infoBlock}>
-          <p>
-            <strong>📍 주소:</strong> {gym.address || "정보 없음"}
-          </p>
-          <p>
-            <strong>📞 전화번호:</strong> {gym.phoneNumber || "정보 없음"}
-          </p>
-          <p>
-            <strong>🕒 운영시간:</strong> {gym.openingHours || "정보 없음"}
-          </p>
-          <p>
-            <strong>🏋️ 부대시설:</strong>
-            {Array.isArray(gym.facilities) && gym.facilities.length > 0
-              ? gym.facilities.join(", ")
-              : "없음"}
-          </p>
-        </div>
-
-        {/* 평점: 반별 포함 */}
-        <div style={styles.rateRow}>
-          <StarRating score={safeRate} size={18} />
-          <span style={styles.rateText}>({safeRate.toFixed(1)}/5)</span>
-        </div>
-
-        {/* 설명 */}
-        <p style={styles.description}>{gym.content || ""}</p>
-
-        {/* 대표 리뷰 */}
-        <div style={{ marginTop: "2rem" }}>
-          <h3 style={{ marginBottom: "0.5rem" }}>💬 대표 리뷰</h3>
-          {reviews.length > 0 ? (
-            reviews.slice(0, 3).map((r) => (
-              <div key={r.reviewNo} style={styles.reviewCard}>
-                <div style={{ fontWeight: "bold" }}>
-                  {r.writerName || "익명"} 님
+      <div className="min-h-screen bg-gray-50 py-8 flex justify-center">
+        <div className="w-full max-w-4xl mx-auto px-4 sm:px-6">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 font-sans overflow-hidden">
+            <div className="p-4 sm:p-6">
+              {/* 이미지 슬라이드 */}
+              {images.length > 0 ? (
+                <div className="w-full h-56 sm:h-72 mb-6 rounded-xl overflow-hidden shadow-md">
+                  <Swiper
+                    modules={[Navigation]}
+                    navigation
+                    spaceBetween={10}
+                    slidesPerView={1}
+                    className="w-full h-full"
+                  >
+                    {images.map((img, idx) => (
+                      <SwiperSlide key={idx}>
+                        <img
+                          src={
+                            img.startsWith("http")
+                              ? img
+                              : `${API_SERVER_HOST}/api/files/view/${encodeURIComponent(
+                                  img
+                                )}`
+                          }
+                          alt={`gym-img-${idx}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </SwiperSlide>
+                    ))}
+                  </Swiper>
                 </div>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                    marginTop: 4,
-                  }}
+              ) : (
+                <div className="w-full h-32 bg-gray-100 rounded-xl flex items-center justify-center mb-6">
+                  <p className="text-gray-500 text-center">
+                    등록된 이미지가 없습니다.
+                  </p>
+                </div>
+              )}
+              {/* 타이틀 */}
+              <div className="text-center mb-6 pb-4 border-b-2 border-blue-50">
+                <h2 className="text-2xl sm:text-3xl font-extrabold bg-gradient-to-r from-teal-500 to-teal-700 bg-clip-text text-transparent">
+                  {gym.title}
+                </h2>
+              </div>
+              {/* 즐겨찾기 섹션 */}
+              <div className="mb-6 p-5 bg-slate-50 border border-gray-200 rounded-xl shadow-sm">
+                <h4 className="flex items-center gap-2 mb-4 text-lg font-bold text-slate-800 pb-2 border-b border-slate-200">
+                  ⭐ 즐겨찾기
+                </h4>
+                <ProtectedButton
+                  onClick={handleToggleFavorite}
+                  redirectMessage="즐겨찾기 기능은 로그인 후 이용 가능합니다."
+                  className={`w-full py-4 px-6 border-2 rounded-lg font-semibold text-base transition-all duration-300 flex items-center justify-center gap-2 ${
+                    isFavorite
+                      ? "border-amber-400 bg-amber-50 text-amber-800 hover:bg-amber-100"
+                      : "border-gray-300 bg-white text-gray-700 hover:border-amber-400 hover:bg-amber-50"
+                  } hover:-translate-y-0.5 hover:shadow-lg`}
+                  title={isFavorite ? "즐겨찾기 해제" : "즐겨찾기 등록"}
                 >
-                  <StarRating score={r.score} size={16} />
-                  <span style={{ color: "#666", fontSize: 13 }}>
-                    ({Number(r.score).toFixed(1)})
+                  {isFavorite ? "⭐ 즐겨찾기 됨" : "☆ 즐겨찾기"} (
+                  {favoriteCount})
+                </ProtectedButton>
+              </div>
+              {/* 평점 섹션 */}
+              <div className="mb-6 p-5 bg-white border border-gray-200 rounded-xl shadow-sm">
+                <h4 className="flex items-center gap-2 mb-4 text-lg font-bold text-slate-800 pb-2 border-b border-slate-100">
+                  ⭐ 평점
+                </h4>
+                <div className="flex items-center gap-3">
+                  <StarRating score={safeRate} size={18} />
+                  <span className="text-gray-600 font-semibold ml-2">
+                    ({safeRate.toFixed(1)}/5)
                   </span>
                 </div>
-                <div style={{ marginTop: 6 }}>
-                  {(r.comment || "").length > 60
-                    ? `${r.comment.slice(0, 60)}...`
-                    : r.comment || ""}
+              </div>
+              {/* 기본 정보 섹션 */}
+              <div className="mb-6 p-5 bg-white border border-gray-200 rounded-xl shadow-sm">
+                <h4 className="flex items-center gap-2 mb-4 text-lg font-bold text-slate-800 pb-2 border-b border-slate-100">
+                  📋 기본 정보
+                </h4>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3 py-2.5 border-b border-slate-50 last:border-b-0">
+                    <span className="min-w-28 font-semibold text-slate-600 text-sm flex-shrink-0">
+                      📍 주소
+                    </span>
+                    <span className="text-gray-700 text-sm leading-relaxed">
+                      {gym.address || "정보 없음"}
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-3 py-2.5 border-b border-slate-50 last:border-b-0">
+                    <span className="min-w-28 font-semibold text-slate-600 text-sm flex-shrink-0">
+                      📞 전화번호
+                    </span>
+                    <span className="text-gray-700 text-sm leading-relaxed">
+                      {gym.phoneNumber || "정보 없음"}
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-3 py-2.5 border-b border-slate-50 last:border-b-0">
+                    <span className="min-w-28 font-semibold text-slate-600 text-sm flex-shrink-0">
+                      🕒 운영시간
+                    </span>
+                    <span className="text-gray-700 text-sm leading-relaxed">
+                      {gym.openingHours || "정보 없음"}
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-3 py-2.5 border-b border-slate-50 last:border-b-0">
+                    <span className="min-w-28 font-semibold text-slate-600 text-sm flex-shrink-0">
+                      🏋️ 부대시설
+                    </span>
+                    <span className="text-gray-700 text-sm leading-relaxed">
+                      {Array.isArray(gym.facilities) &&
+                      gym.facilities.length > 0
+                        ? gym.facilities.join(", ")
+                        : "없음"}
+                    </span>
+                  </div>
                 </div>
               </div>
-            ))
-          ) : (
-            <p style={{ color: "#888" }}>등록된 리뷰가 없습니다.</p>
-          )}
-        </div>
-
-        {/* 트레이너 */}
-        <ul style={styles.trainerList}>
-          {trainers.map((t) => (
-            <li
-              key={t.trainerNo}
-              style={styles.trainerItem}
-              onClick={() => navigate(`/trainers/detail/${t.trainerNo}`)}
-              onMouseEnter={(e) =>
-                Object.assign(e.currentTarget.style, styles.trainerItemHover)
-              }
-              onMouseLeave={(e) => {
-                e.currentTarget.removeAttribute("style");
-                Object.assign(e.currentTarget.style, styles.trainerItem);
-              }}
-            >
-              <strong>{t.name || ""}</strong> —{t.specialty || "전문 분야 없음"}
-            </li>
-          ))}
-        </ul>
-
-        {/* 하단 버튼 */}
-        <div style={styles.buttonRow}>
-          <button style={styles.button} onClick={handleScrollTop}>
-            ⬆️ 맨 위로
-          </button>{" "}
-          <button style={styles.button} onClick={handleGoReviews}>
-            📝 리뷰 보기/쓰기
-          </button>
-          <button
-            style={styles.button}
-            onClick={() => navigate(`/gyms/purchase/${gymno}`)}
-          >
-            ➕ 등록
-          </button>
+              {/* 설명 섹션 */}
+              {gym.content && (
+                <div className="mb-6 p-5 bg-white border border-gray-200 rounded-xl shadow-sm">
+                  <h4 className="flex items-center gap-2 mb-4 text-lg font-bold text-slate-800 pb-2 border-b border-slate-100">
+                    📝 소개
+                  </h4>
+                  <p className="text-gray-600 leading-7 text-sm">
+                    {gym.content}
+                  </p>
+                </div>
+              )}
+              {/* 리뷰 섹션 */}
+              <div className="mb-6 p-5 bg-white border border-gray-200 rounded-xl shadow-sm">
+                <h4 className="flex items-center gap-2 mb-4 text-lg font-bold text-slate-800 pb-2 border-b border-slate-100">
+                  💬 최근 리뷰
+                </h4>
+                {reviews.length > 0 ? (
+                  <div className="space-y-3">
+                    {reviews.slice(0, 3).map((r) => (
+                      <div
+                        key={r.reviewNo}
+                        className="bg-slate-50 border border-slate-200 rounded-lg p-4 transition-all duration-300 hover:bg-slate-100 hover:shadow-md hover:-translate-y-0.5"
+                      >
+                        <div className="font-bold text-gray-800 mb-1">
+                          {r.writerName || "익명"} 님
+                        </div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <StarRating score={r.score} size={16} />
+                          <span className="text-gray-500 text-xs">
+                            ({Number(r.score).toFixed(1)})
+                          </span>
+                        </div>
+                        <div className="text-sm text-gray-700">
+                          {(r.comment || "").length > 60
+                            ? `${r.comment.slice(0, 60)}...`
+                            : r.comment || ""}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 italic">
+                    등록된 리뷰가 없습니다.
+                  </p>
+                )}
+              </div>
+              {/* 트레이너 섹션 */}
+              {trainers.length > 0 && (
+                <div className="mb-6 p-5 bg-white border border-gray-200 rounded-xl shadow-sm">
+                  <h4 className="flex items-center gap-2 mb-4 text-lg font-bold text-slate-800 pb-2 border-b border-slate-100">
+                    💪 트레이너
+                  </h4>
+                  <div className="space-y-2.5">
+                    {trainers.map((t) => (
+                      <div
+                        key={t.trainerNo}
+                        className="bg-gray-50 border border-gray-200 rounded-lg p-3.5 cursor-pointer transition-all duration-300 hover:border-gray-300 hover:bg-gray-100 hover:-translate-y-0.5 hover:shadow-lg flex items-center gap-2"
+                        onClick={() =>
+                          navigate(`/trainers/detail/${t.trainerNo}`)
+                        }
+                      >
+                        <strong className="text-gray-800">
+                          {t.name || ""}
+                        </strong>
+                        {t.specialty && (
+                          <span className="text-slate-500 text-sm font-normal">
+                            - {t.specialty}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {/* 하단 액션 버튼 */}
+              <div className="flex gap-3 mt-8 flex-col sm:flex-row">
+                <button
+                  className="flex-1 min-w-30 py-3.5 px-5 bg-teal-500 text-white rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 flex items-center justify-center gap-1.5 hover:bg-teal-600 hover:-translate-y-0.5 hover:shadow-lg"
+                  onClick={handleGoReviews}
+                >
+                  리뷰 보기/쓰기
+                </button>
+                <button
+                  className="flex-1 min-w-30 py-3.5 px-5 bg-emerald-500 text-white rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 flex items-center justify-center gap-1.5 hover:bg-emerald-600 hover:-translate-y-0.5 hover:shadow-lg"
+                  onClick={() => navigate(`/gyms/purchase/${gymno}`)}
+                >
+                  등록하기
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </BasicLayout>
   );
-};
-
-const styles = {
-  container: {
-    maxWidth: "500px",
-    margin: "0 auto",
-    padding: "1.5rem",
-    fontFamily: "sans-serif",
-    border: "1px solid #ddd",
-    borderRadius: "10px",
-    boxShadow: "0 4px 8px rgba(0,0,0,0.05)",
-    backgroundColor: "#fff",
-  },
-  swiper: {
-    width: "100%",
-    height: "250px",
-    marginBottom: "1.2rem",
-    borderRadius: "8px",
-    overflow: "hidden",
-  },
-  img: { width: "100%", height: "100%", objectFit: "cover" },
-  titleRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "0.5rem",
-  },
-  favoriteIcon: { fontSize: "24px", cursor: "pointer" },
-  infoBlock: { marginBottom: "1.5rem", fontSize: "0.95rem" },
-  rateRow: {
-    display: "flex",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: "1rem",
-    fontSize: "0.95rem",
-  },
-  rateText: { color: "#777" },
-  description: { marginBottom: "1rem", lineHeight: 1.5, fontSize: "0.95rem" },
-  reviewCard: {
-    border: "1px solid #ddd",
-    borderRadius: "8px",
-    padding: "10px",
-    marginBottom: "10px",
-    backgroundColor: "#fafafa",
-    fontSize: "0.95rem",
-  },
-
-  // Trainer
-  trainerList: { padding: 0, listStyle: "none" },
-  trainerItem: {
-    border: "1px solid #eee",
-    borderRadius: "6px",
-    padding: "8px",
-    marginBottom: "8px",
-    fontSize: "0.9rem",
-    backgroundColor: "#f8f8f8",
-    cursor: "pointer",
-    transition: "all 0.2s ease-in-out",
-  },
-  trainerItemHover: {
-    borderColor: "#90caf9",
-    backgroundColor: "#e3f2fd",
-    boxShadow: "0 0 0 3px #e3f2fd",
-  },
-
-  // Buttons
-  buttonRow: { display: "flex", justifyContent: "space-between", gap: "10px" },
-  button: {
-    flex: 1,
-    padding: "10px",
-    fontSize: "0.95rem",
-    border: "none",
-    borderRadius: "6px",
-    backgroundColor: "#3F75FF",
-    color: "#fff",
-    cursor: "pointer",
-  },
 };
 
 export default GymDetailPage;

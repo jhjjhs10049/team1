@@ -64,7 +64,6 @@ const GymReviewPage = () => {
   if (loading) return <div>헬스장 정보를 불러오는 중입니다...</div>;
   if (error) return <div>{error}</div>;
   if (!gym) return <div>헬스장 정보가 없습니다.</div>;
-
   const goLoginWithRedirect = () => {
     const redirect = encodeURIComponent(location.pathname + location.search);
     navigate(`/member/login?redirect=${redirect}`);
@@ -72,70 +71,69 @@ const GymReviewPage = () => {
 
   return (
     <BasicLayout>
-      <div style={styles.container}>
-        <h1>{gym.title} 리뷰</h1>
+      <div className="min-h-screen bg-gray-50 py-8 flex justify-center">
+        <div className="w-full max-w-4xl mx-auto px-4">
+          {/* 페이지 헤더 */}
+          <div className="bg-white rounded-lg p-8 mb-6 shadow-sm border border-gray-100">
+            <h1 className="text-3xl font-bold text-center bg-gradient-to-r from-teal-500 to-teal-700 bg-clip-text text-transparent">
+              {gym.title} 리뷰
+            </h1>
+            <div className="mt-4 text-center">
+              <div className="w-16 h-1 bg-gradient-to-r from-teal-400 to-teal-600 rounded-full mx-auto"></div>
+            </div>
+          </div>
 
-        {/* 누구나 열람 가능 */}
-        <ReviewList
-          reviews={reviews}
-          gymNo={gymno}
-          onDeleted={() => {
-            fetchGymReviews(gymno).then(setReviews);
-          }}
-        />
-
-        <hr style={{ margin: "2rem 0" }} />
-
-        <div style={styles.reviewFormWrapper}>
-          {/* 작성 영역: 로그인 필요 */}
-          {isLogin ? (
-            <ReviewForm
-              gymNo={gym.gymNo}
-              onSubmitted={() => {
-                fetchGymReviews(gym.gymNo).then((raw) =>
+          {/* 리뷰 목록 섹션 */}
+          <div className="bg-white rounded-lg p-6 mb-6 shadow-sm border border-gray-100">
+            <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-3">
+              <span className="text-xl">💬</span>
+              등록된 리뷰
+            </h2>
+            <ReviewList
+              reviews={reviews}
+              gymNo={gymno}
+              onDeleted={() => {
+                fetchGymReviews(gymno).then((raw) =>
                   setReviews(normalizeReviews(raw))
                 );
               }}
             />
-          ) : (
-            <div style={{ textAlign: "center" }}>
-              <p style={{ marginBottom: "0.75rem" }}>
-                리뷰를 작성하려면 로그인이 필요합니다.
-              </p>
-              <button
-                onClick={goLoginWithRedirect}
-                style={{
-                  padding: "0.6rem 1rem",
-                  backgroundColor: "#3F75FF",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "6px",
-                  cursor: "pointer",
+          </div>
+
+          {/* 리뷰 작성 섹션 */}
+          <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+            {isLogin ? (
+              <ReviewForm
+                gymNo={gym.gymNo}
+                onSubmitted={() => {
+                  fetchGymReviews(gym.gymNo).then((raw) =>
+                    setReviews(normalizeReviews(raw))
+                  );
                 }}
-              >
-                로그인하고 리뷰 작성하기
-              </button>
-            </div>
-          )}
+              />
+            ) : (
+              <div className="text-center py-6">
+                <div className="mb-4">
+                  <div className="w-16 h-16 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-2xl">🔐</span>
+                  </div>
+                  <p className="text-gray-600 mb-4">
+                    리뷰를 작성하려면 로그인이 필요합니다.
+                  </p>
+                </div>
+                <button
+                  onClick={goLoginWithRedirect}
+                  className="px-6 py-3 bg-teal-500 text-white font-medium rounded-lg shadow-sm hover:bg-teal-600 transition-colors"
+                >
+                  로그인하고 리뷰 작성하기
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </BasicLayout>
   );
-};
-
-const styles = {
-  container: {
-    maxWidth: "700px",
-    margin: "0 auto",
-    padding: "2rem",
-    fontFamily: "sans-serif",
-  },
-  reviewFormWrapper: {
-    border: "2px solid black",
-    borderRadius: "8px",
-    padding: "1rem",
-    transition: "all 0.2s ease",
-  },
 };
 
 export default GymReviewPage;

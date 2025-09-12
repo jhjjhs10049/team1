@@ -57,7 +57,7 @@ const _dailySchedulesSeed = [
     endTime: "2025-08-28 08:00",
     gym: "한강공원",
     trainer: null,
-    color: "bg-green-500",
+    color: "bg-teal-500",
   },
 ];
 
@@ -253,268 +253,328 @@ const SchedulePage = () => {
     if (today >= ws && today <= we) return today.getDay();
     return undefined;
   })();
-
   return (
     <BasicLayout>
-      <div className="p-6 space-y-6">
-        {/* ───────────────── 상단: 오늘 지표 ───────────────── */}
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatCard
-            label="칼로리"
-            value={`${todayStats.calories} kcal`}
-            onClick={() =>
-              setStatEditModal({
-                open: true,
-                label: "칼로리",
-                key: "calories",
-                value: todayStats.calories,
-              })
-            }
-          />
-          <StatCard
-            label="운동시간"
-            value={`${todayStats.minutes} 분`}
-            onClick={() =>
-              setStatEditModal({
-                open: true,
-                label: "운동시간",
-                key: "minutes",
-                value: todayStats.minutes,
-              })
-            }
-          />
-          <StatCard
-            label="몸무게"
-            value={`${todayStats.weight.toFixed(1)} kg`}
-            onClick={() =>
-              setStatEditModal({
-                open: true,
-                label: "몸무게",
-                key: "weight",
-                value: todayStats.weight,
-              })
-            }
-          />
-          <StatCard
-            label="수분섭취"
-            value={`${formatCups(todayStats.water)} 잔 (${
-              todayStats.water
-            } ml)`}
-            onClick={() =>
-              setStatEditModal({
-                open: true,
-                label: "수분섭취",
-                key: "water",
-                value: todayStats.water,
-              })
-            }
-          />
-        </section>
-
-        {/* 상단 지표 입력 모달 */}
-        {statEditModal.open && (
-          <Modal
-            onClose={() =>
-              setStatEditModal({ open: false, label: "", key: "", value: "" })
-            }
-          >
-            <h3 className="text-lg font-semibold mb-4">
-              {statEditModal.label} 입력
-            </h3>
-            <input
-              type="number"
-              value={statEditModal.value}
-              onChange={(e) =>
-                setStatEditModal((prev) => ({ ...prev, value: e.target.value }))
-              }
-              className="border rounded px-3 py-2 w-full mb-4"
-            />
-            {statEditModal.key === "water" && (
-              <p className="text-sm text-gray-500 mb-2">
-                단위: ml (예: 200ml = 1잔)
-              </p>
-            )}
-            <div className="flex justify-end gap-2">
-              <button
-                className="px-3 py-2 rounded border"
+      <div className="min-h-screen bg-gray-50 py-8 flex justify-center">
+        <div className="w-full max-w-7xl mx-auto px-4 space-y-8">
+          {/* 페이지 헤더 */}
+          <div className="bg-white rounded-lg p-8 shadow-sm border border-gray-100">
+            <h1 className="text-3xl font-bold text-center bg-gradient-to-r from-teal-500 to-teal-700 bg-clip-text text-transparent">
+              💪 운동 스케줄 관리
+            </h1>
+            <div className="mt-4 text-center">
+              <div className="w-16 h-1 bg-gradient-to-r from-teal-400 to-teal-600 rounded-full mx-auto"></div>
+            </div>
+          </div>
+          {/* 상단 지표 카드들 */}
+          <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
+            <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-3">
+              <span className="text-xl">📊</span>
+              오늘의 운동 지표
+            </h2>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCard
+                label="칼로리"
+                value={`${todayStats.calories} kcal`}
                 onClick={() =>
                   setStatEditModal({
-                    open: false,
-                    label: "",
-                    key: "",
-                    value: "",
+                    open: true,
+                    label: "칼로리",
+                    key: "calories",
+                    value: todayStats.calories,
                   })
                 }
-              >
-                취소
-              </button>
-              <button
-                className="px-3 py-2 rounded bg-blue-600 text-white"
-                onClick={() => {
-                  setStat(statEditModal.key, Number(statEditModal.value));
+              />
+              <StatCard
+                label="운동시간"
+                value={`${todayStats.minutes} 분`}
+                onClick={() =>
                   setStatEditModal({
-                    open: false,
-                    label: "",
-                    key: "",
-                    value: "",
-                  });
-                }}
-              >
-                저장
-              </button>
-            </div>
-          </Modal>
-        )}
-
-        {/* ───────────────── 주간 목표 ───────────────── */}
-        <section className="p-4 rounded-xl border shadow-sm">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="font-semibold">주간 목표</h3>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">
-                {weeklyGoal.donePercent}% / {weeklyGoal.targetPercent}%
-              </span>
-            </div>
-          </div>
-          <ProgressBar ratio={weeklyRatio} />
-        </section>
-
-        {/* ───────────────── 본문: 달력 + 일정 + 주간시간표 ───────────────── */}
-        <section className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          {/* 달력 + 선택일 일정 */}
-          <div className="space-y-4 xl:col-span-1">
-            {/* 달력 (점 표시: 해당 날짜에 일정 존재) */}
-            <div className="border rounded-lg p-3">
-              <Calendar
-                onChange={setSelectedDate}
-                value={selectedDate}
-                tileContent={({ date }) => {
-                  const dateIso = date.toISOString().split("T")[0];
-                  const has = schedules.some((d) => d.date === dateIso);
-                  return has ? (
-                    <div className="mt-1 w-2 h-2 bg-blue-600 rounded-full mx-auto" />
-                  ) : null;
-                }}
+                    open: true,
+                    label: "운동시간",
+                    key: "minutes",
+                    value: todayStats.minutes,
+                  })
+                }
+              />
+              <StatCard
+                label="몸무게"
+                value={`${todayStats.weight.toFixed(1)} kg`}
+                onClick={() =>
+                  setStatEditModal({
+                    open: true,
+                    label: "몸무게",
+                    key: "weight",
+                    value: todayStats.weight,
+                  })
+                }
+              />
+              <StatCard
+                label="수분섭취"
+                value={`${formatCups(todayStats.water)} 잔 (${
+                  todayStats.water
+                } ml)`}
+                onClick={() =>
+                  setStatEditModal({
+                    open: true,
+                    label: "수분섭취",
+                    key: "water",
+                    value: todayStats.water,
+                  })
+                }
               />
             </div>
+          </div>{" "}
+          {/* 상단 지표 입력 모달 */}
+          {statEditModal.open && (
+            <Modal
+              onClose={() =>
+                setStatEditModal({ open: false, label: "", key: "", value: "" })
+              }
+            >
+              <div className="p-6">
+                <h3 className="text-xl font-semibold mb-6 text-gray-800 flex items-center gap-3">
+                  <span className="text-xl">📊</span>
+                  {statEditModal.label} 입력
+                </h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {statEditModal.label}
+                    </label>
+                    <input
+                      type="number"
+                      value={statEditModal.value}
+                      onChange={(e) =>
+                        setStatEditModal((prev) => ({
+                          ...prev,
+                          value: e.target.value,
+                        }))
+                      }
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors"
+                      placeholder={`${statEditModal.label}를 입력하세요`}
+                    />
+                    {statEditModal.key === "water" && (
+                      <p className="text-sm text-gray-500 mt-2">
+                        단위: ml (예: 200ml = 1잔)
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex justify-end gap-3 mt-8">
+                  {" "}
+                  <button
+                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors font-medium"
+                    onClick={() =>
+                      setStatEditModal({
+                        open: false,
+                        label: "",
+                        key: "",
+                        value: "",
+                      })
+                    }
+                  >
+                    취소
+                  </button>
+                  <button
+                    className="px-4 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-600 transition-colors font-medium"
+                    onClick={() => {
+                      setStat(statEditModal.key, Number(statEditModal.value));
+                      setStatEditModal({
+                        open: false,
+                        label: "",
+                        key: "",
+                        value: "",
+                      });
+                    }}
+                  >
+                    저장
+                  </button>
+                </div>
+              </div>
+            </Modal>
+          )}
+          {/* 주간 목표 */}
+          <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-3">
+                <span className="text-xl">🎯</span>
+                주간 목표
+              </h2>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600 font-medium">
+                  {weeklyGoal.donePercent}% / {weeklyGoal.targetPercent}%
+                </span>
+              </div>
+            </div>
+            <ProgressBar ratio={weeklyRatio} />
+          </div>{" "}
+          {/* 본문: 달력 + 일정 + 주간시간표 */}
+          <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
+            <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-3">
+              <span className="text-xl">📅</span>
+              일정 관리
+            </h2>
 
-            {/* 선택일 일정 리스트 */}
-            <DailyScheduleList
-              dateISO={selectedISO}
-              items={todayList}
-              onAdd={() => setScheduleCreateModal({ open: true })}
-              onEdit={(item) => setScheduleEditModal({ open: true, item })}
-              onDelete={(item) => setScheduleDeleteModal({ open: true, item })}
-            />
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+              {/* 달력 + 선택일 일정 */}
+              <div className="space-y-4 xl:col-span-1">
+                {/* 달력 (점 표시: 해당 날짜에 일정 존재) */}
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <Calendar
+                    onChange={setSelectedDate}
+                    value={selectedDate}
+                    tileContent={({ date }) => {
+                      const dateIso = date.toISOString().split("T")[0];
+                      const has = schedules.some((d) => d.date === dateIso);
+                      return has ? (
+                        <div className="mt-1 w-2 h-2 bg-teal-500 rounded-full mx-auto" />
+                      ) : null;
+                    }}
+                  />
+                </div>
 
-            {/* 일정 추가 모달 */}
-            {scheduleCreateModal.open && (
-              <ScheduleCreateModal
-                dateISO={selectedISO}
-                onClose={() => setScheduleCreateModal({ open: false })}
-                onCreate={(item) => {
-                  addSchedule(item);
-                  setScheduleCreateModal({ open: false });
-                }}
-              />
-            )}
+                {/* 선택일 일정 리스트 */}
+                <DailyScheduleList
+                  dateISO={selectedISO}
+                  items={todayList}
+                  onAdd={() => setScheduleCreateModal({ open: true })}
+                  onEdit={(item) => setScheduleEditModal({ open: true, item })}
+                  onDelete={(item) =>
+                    setScheduleDeleteModal({ open: true, item })
+                  }
+                />
 
-            {/* 일정 수정 모달 */}
-            {scheduleEditModal.open && (
-              <ScheduleModal
-                item={scheduleEditModal.item}
-                onClose={() =>
-                  setScheduleEditModal({ open: false, item: null })
-                }
-                onSave={(updated) => {
-                  saveSchedule(updated);
-                  setScheduleEditModal({ open: false, item: null });
-                }}
-              />
-            )}
+                {/* 일정 추가 모달 */}
+                {scheduleCreateModal.open && (
+                  <ScheduleCreateModal
+                    dateISO={selectedISO}
+                    onClose={() => setScheduleCreateModal({ open: false })}
+                    onCreate={(item) => {
+                      addSchedule(item);
+                      setScheduleCreateModal({ open: false });
+                    }}
+                  />
+                )}
 
-            {/* 일정 삭제 확인 모달 */}
-            {scheduleDeleteModal.open && (
-              <ConfirmModal
-                message={`'${scheduleDeleteModal.item.title}' 일정을 삭제하시겠습니까?`}
-                onClose={() =>
-                  setScheduleDeleteModal({ open: false, item: null })
-                }
-                onConfirm={() => {
-                  deleteSchedule(scheduleDeleteModal.item.id);
-                  setScheduleDeleteModal({ open: false, item: null });
-                }}
-              />
-            )}
+                {/* 일정 수정 모달 */}
+                {scheduleEditModal.open && (
+                  <ScheduleModal
+                    item={scheduleEditModal.item}
+                    onClose={() =>
+                      setScheduleEditModal({ open: false, item: null })
+                    }
+                    onSave={(updated) => {
+                      saveSchedule(updated);
+                      setScheduleEditModal({ open: false, item: null });
+                    }}
+                  />
+                )}
+
+                {/* 일정 삭제 확인 모달 */}
+                {scheduleDeleteModal.open && (
+                  <ConfirmModal
+                    message={`'${scheduleDeleteModal.item.title}' 일정을 삭제하시겠습니까?`}
+                    onClose={() =>
+                      setScheduleDeleteModal({ open: false, item: null })
+                    }
+                    onConfirm={() => {
+                      deleteSchedule(scheduleDeleteModal.item.id);
+                      setScheduleDeleteModal({ open: false, item: null });
+                    }}
+                  />
+                )}
+              </div>
+
+              {/* 주간 시간표: schedules → 파생 블록, 블록 클릭 시 수정 모달 */}
+              <div className="xl:col-span-2">
+                <WeeklyGrid
+                  blocks={weeklyBlocks}
+                  highlightDayIdx={highlightDayIdx}
+                  onBlockClick={(block) => {
+                    const item = schedules.find((s) => s.id === block.id);
+                    if (item) setScheduleEditModal({ open: true, item });
+                  }}
+                  onBlockComplete={(block) => {
+                    const item = schedules.find((s) => s.id === block.id);
+                    if (!item || item.completed) return; // 중복 방지
+                    saveSchedule({ ...item, completed: true });
+                  }}
+                />
+              </div>
+            </div>
           </div>
+          {/* 아래: 루틴 + 오늘 기록 + AI 코치 */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* 루틴 목록 + 모달들 */}
+            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-3">
+                <span className="text-lg">🏋️</span>
+                운동 루틴
+              </h3>
+              <div className="space-y-3">
+                <RoutineList
+                  routines={routines}
+                  onStart={(r) =>
+                    setRoutineStartModal({ open: true, routine: r })
+                  }
+                  onEdit={(r) =>
+                    setRoutineEditModal({ open: true, routine: r })
+                  }
+                />
 
-          {/* 주간 시간표: schedules → 파생 블록, 블록 클릭 시 수정 모달 */}
-          <div className="xl:col-span-2">
-            <WeeklyGrid
-              blocks={weeklyBlocks}
-              highlightDayIdx={highlightDayIdx}
-              onBlockClick={(block) => {
-                const item = schedules.find((s) => s.id === block.id);
-                if (item) setScheduleEditModal({ open: true, item });
-              }}
-              onBlockComplete={(block) => {
-                const item = schedules.find((s) => s.id === block.id);
-                if (!item || item.completed) return; // 중복 방지
-                saveSchedule({ ...item, completed: true });
-              }}
-            />
-          </div>
-        </section>
+                {routineEditModal.open && (
+                  <RoutineEditModal
+                    routine={routineEditModal.routine}
+                    onSave={(updated) => saveRoutine(updated)}
+                    onDelete={(key) => deleteRoutine(key)}
+                    onClose={() =>
+                      setRoutineEditModal({ open: false, routine: null })
+                    }
+                  />
+                )}
 
-        {/* ───────────────── 아래: 루틴 + 오늘 기록 + AI 코치 ───────────────── */}
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* 루틴 목록 + 모달들 */}
-          <div className="space-y-3">
-            <RoutineList
-              routines={routines}
-              onStart={(r) => setRoutineStartModal({ open: true, routine: r })}
-              onEdit={(r) => setRoutineEditModal({ open: true, routine: r })}
-            />
+                {routineStartModal.open && (
+                  <RoutineStartModal
+                    routine={routineStartModal.routine}
+                    onComplete={(summary) => {
+                      // 데모용: 완료 요약만 로그
+                      console.log("[Routine] complete:", summary);
+                    }}
+                    onClose={() =>
+                      setRoutineStartModal({ open: false, routine: null })
+                    }
+                  />
+                )}
+              </div>
+            </div>
 
-            {routineEditModal.open && (
-              <RoutineEditModal
-                routine={routineEditModal.routine}
-                onSave={(updated) => saveRoutine(updated)}
-                onDelete={(key) => deleteRoutine(key)}
-                onClose={() =>
-                  setRoutineEditModal({ open: false, routine: null })
+            {/* 오늘 기록: 몸무게 저장, 수분 +/− 200ml (상단 지표에 즉시 반영) */}
+            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-3">
+                <span className="text-lg">📝</span>
+                오늘 기록
+              </h3>
+              <TodayRecord
+                weight={todayStats.weight}
+                water={todayStats.water}
+                onSaveWeight={(v) => setStat("weight", v)}
+                onAddWater={(amt = 200) =>
+                  setStat("water", todayStats.water + amt)
                 }
               />
-            )}
+            </div>
 
-            {routineStartModal.open && (
-              <RoutineStartModal
-                routine={routineStartModal.routine}
-                onComplete={(summary) => {
-                  // 데모용: 완료 요약만 로그
-                  console.log("[Routine] complete:", summary);
-                }}
-                onClose={() =>
-                  setRoutineStartModal({ open: false, routine: null })
-                }
-              />
-            )}
+            {/* AI 코치 (임베드만) */}
+            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-3">
+                <span className="text-lg">🤖</span>
+                AI 코치
+              </h3>
+              <GeminiChatComponent />
+            </div>
           </div>
-
-          {/* 오늘 기록: 몸무게 저장, 수분 +/− 200ml (상단 지표에 즉시 반영) */}
-          <TodayRecord
-            weight={todayStats.weight}
-            water={todayStats.water}
-            onSaveWeight={(v) => setStat("weight", v)}
-            onAddWater={(amt = 200) => setStat("water", todayStats.water + amt)}
-          />
-
-          {/* AI 코치 (임베드만) */}
-          <div className="space-y-3">
-            <h3 className="font-semibold">AI 코치</h3>
-            <GeminiChatComponent />
-          </div>
-        </section>
+        </div>
       </div>
     </BasicLayout>
   );

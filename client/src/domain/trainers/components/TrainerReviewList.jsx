@@ -46,58 +46,62 @@ const TrainerReviewList = ({
   };
 
   if (!reviews || reviews.length === 0) {
-    return <p>등록된 리뷰가 없습니다.</p>;
+    return (
+      <div className="text-center py-8">
+        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span className="text-2xl">📝</span>
+        </div>
+        <p className="text-gray-500">등록된 리뷰가 없습니다.</p>
+      </div>
+    );
   }
 
   return (
-    <div>
+    <div className="space-y-4">
       {reviews.map((r) => (
         <div
           key={r.reviewNo}
-          style={{
-            border: "1px solid #ddd",
-            borderRadius: 8,
-            padding: "1rem",
-            marginBottom: "1rem",
-            backgroundColor: "#fafafa",
-          }}
+          className="bg-gray-50 rounded-lg p-4 border border-gray-200"
         >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              flexWrap: "wrap",
-            }}
-          >
-            <strong>{r.writerNickname}</strong>
-            <span style={{ marginLeft: "auto" }}>
-              {canDelete(r) && (
-                <button
-                  onClick={() => handleDelete(r.reviewNo)}
-                  style={{
-                    background: "red",
-                    color: "white",
-                    border: "none",
-                    borderRadius: 4,
-                    padding: "2px 6px",
-                    cursor: "pointer",
-                  }}
-                >
-                  삭제
-                </button>
-              )}
+          <div className="flex items-center justify-between flex-wrap gap-3 mb-3">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center">
+                <span className="text-sm font-semibold text-teal-700">
+                  {r.writerNickname?.charAt(0) || "?"}
+                </span>
+              </div>
+              <strong className="text-gray-800 font-semibold">
+                {r.writerNickname}
+              </strong>
+            </div>
+            {canDelete(r) && (
+              <button
+                onClick={() => handleDelete(r.reviewNo)}
+                className="bg-red-500 text-white text-sm px-3 py-1 rounded-md"
+              >
+                삭제
+              </button>
+            )}
+          </div>
+
+          <div className="mb-3">
+            <span className="flex items-center gap-2">
+              <StarRating score={r.score} />
+              <span className="text-gray-600 font-medium">
+                ({Number(r.score).toFixed(1)})
+              </span>
             </span>
           </div>
 
-          <div style={{ marginTop: 4 }}>
-            <span>
-              <StarRating score={r.score} /> ({Number(r.score).toFixed(1)})
-            </span>
-          </div>
+          <p className="text-gray-700 whitespace-pre-wrap mb-3 leading-relaxed">
+            {r.comment}
+          </p>
 
-          <p style={{ marginTop: 8, whiteSpace: "pre-wrap" }}>{r.comment}</p>
-          <small style={{ color: "#666" }}>{formatDate(r.createdDate)}</small>
+          <div className="text-right">
+            <small className="text-gray-500 text-sm">
+              {formatDate(r.createdDate)}
+            </small>
+          </div>
         </div>
       ))}
     </div>

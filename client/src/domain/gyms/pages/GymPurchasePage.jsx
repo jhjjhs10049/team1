@@ -183,7 +183,7 @@ const styles = {
   },
   primaryBtn: {
     padding: "10px 14px",
-    background: "#3F75FF",
+    background: "#14b8a6",
     color: "#fff",
     border: "none",
     borderRadius: 8,

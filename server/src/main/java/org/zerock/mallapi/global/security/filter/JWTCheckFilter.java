@@ -40,20 +40,20 @@ public class JWTCheckFilter extends OncePerRequestFilter {
         if(request.getMethod().equals("OPTIONS")){
             return true;
         }        String path = request.getRequestURI();
-        String method = request.getMethod();        
-        // 인증이 필요 없는 member API들만 명시적으로 허용
+        String method = request.getMethod();          // 인증이 필요 없는 member API들만 명시적으로 허용
         if(path.equals("/api/member/login") ||
            path.equals("/api/member/join") ||
            path.equals("/api/member/kakao") ||
            path.equals("/api/member/refresh") ||
            path.startsWith("/api/member/check-") ||
-           // ❌ 제거: verify-password, withdraw는 인증 필요
+           // 이메일 인증 API 제외
+           path.startsWith("/api/auth/") ||
            path.equals("/login") ||
            // 웹소켓 연결 경로 제외
            path.startsWith("/ws")) {
             log.debug("JWT filter excluded: {}", path);
             return true;
-        }        
+        }
         
         // Gyms API - 조회는 공개, 리뷰/즐겨찾기는 인증 필요
         if(path.startsWith("/api/gyms")) {
