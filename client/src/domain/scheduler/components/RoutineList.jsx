@@ -19,7 +19,7 @@ const RoutineList = ({ routines, onStart, onEdit, onAdd }) => {
             위의 버튼을 클릭해서 새 루틴을 추가해보세요!
           </p>
         </div>
-      )}{" "}
+      )}
       {routines.map((r) => (
         <div
           key={r.routineNo}

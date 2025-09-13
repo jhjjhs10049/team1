@@ -21,7 +21,7 @@ const RoutineStartModal = ({ routine, onClose, onComplete }) => {
         <h3 className="text-xl font-semibold mb-6 text-gray-800 flex items-center gap-3">
           <span className="text-xl">🚀</span>
           {routine.name} 시작
-        </h3>{" "}
+        </h3>
         <div className="space-y-3 max-h-72 overflow-auto pr-2">
           {exercises.map((exercise, idx) => (
             <label
@@ -35,9 +35,8 @@ const RoutineStartModal = ({ routine, onClose, onComplete }) => {
                 className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
               />
               <span
-                className={`flex-1 ${
-                  done.has(idx) ? "line-through text-gray-400" : "text-gray-700"
-                } font-medium`}
+                className={`flex-1 ${done.has(idx) ? "line-through text-gray-400" : "text-gray-700"
+                  } font-medium`}
               >
                 {exercise}
               </span>
@@ -50,7 +49,7 @@ const RoutineStartModal = ({ routine, onClose, onComplete }) => {
             onClick={onClose}
           >
             닫기
-          </button>{" "}
+          </button>
           <button
             className="px-4 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-600 transition-colors font-medium"
             onClick={() => {

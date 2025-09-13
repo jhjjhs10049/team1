@@ -23,6 +23,9 @@ const ChatRoom = ({ onLeave }) => {
 
   const { isMobile, showSidebar, setShowSidebar } = useResponsive();
 
+  // 🚫 페이지 이동 시에도 채팅방 소속 유지
+  // 나가기 버튼을 누르지 않는 한 채팅방에서 나가지 않음
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-96">
@@ -32,16 +35,14 @@ const ChatRoom = ({ onLeave }) => {
   }
   return (
     <div
-      className={`${
-        isMobile ? "h-screen flex flex-col" : "max-w-7xl mx-auto px-4 py-6"
-      }`}
+      className={`${isMobile ? "h-screen flex flex-col" : "max-w-7xl mx-auto px-4 py-6"
+        }`}
     >
       <div
-        className={`flex bg-gray-50 ${
-          isMobile
-            ? "flex-1 min-h-0"
-            : "min-h-[calc(100vh-200px)] max-h-[calc(100vh-200px)] rounded-lg border border-gray-200 shadow-sm"
-        } overflow-hidden relative`}
+        className={`flex bg-gray-50 ${isMobile
+          ? "flex-1 min-h-0"
+          : "min-h-[calc(100vh-200px)] max-h-[calc(100vh-200px)] rounded-lg border border-gray-200 shadow-sm"
+          } overflow-hidden relative`}
       >
         {/* 모바일 사이드바 배경 오버레이 */}
         {isMobile && showSidebar && (
@@ -58,7 +59,7 @@ const ChatRoom = ({ onLeave }) => {
           participants={participants}
           username={username}
           isWebSocketConnected={isWebSocketConnected}
-          onLeave={() => handleLeave(onLeave)}
+          onLeave={null} // 🚫 자동 나가기 완전 차단
           isMobile={isMobile}
           showSidebar={showSidebar}
           setShowSidebar={setShowSidebar}
@@ -72,7 +73,7 @@ const ChatRoom = ({ onLeave }) => {
               roomInfo={roomInfo}
               participantCount={participantCount}
               setShowSidebar={setShowSidebar}
-              onLeave={() => handleLeave(onLeave)}
+              username={username}
               isWebSocketConnected={isWebSocketConnected}
             />
           )}

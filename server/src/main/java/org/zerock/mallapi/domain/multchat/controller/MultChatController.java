@@ -23,20 +23,23 @@ import java.util.Map;
 public class MultChatController {
 
     private final MultChatRoomService multChatRoomService;
-    private final MultChatMessageService multChatMessageService;    // 채팅방 목록 조회 (공개)
+    private final MultChatMessageService multChatMessageService;    // 채팅방 목록 조회 (공개/비공개 모두)
     @GetMapping("/rooms")
     public ResponseEntity<Page<MultChatRoomDTO>> getRooms(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        log.info("멀티채팅방 목록 조회 - page: {}, size: {}", page, size);
+            @RequestParam(defaultValue = "10") int size,
+            @AuthenticationPrincipal MemberDTO memberDTO) {
+        
+        Long memberNo = memberDTO != null ? memberDTO.getMemberNo() : null;
+        log.info("전체 채팅방 목록 조회 - page: {}, size: {}, memberNo: {}", page, size, memberNo);
         
         try {
             Pageable pageable = PageRequest.of(page, size);
-            Page<MultChatRoomDTO> rooms = multChatRoomService.getPublicChatRooms(pageable);
-            log.info("멀티채팅방 목록 조회 완료 - {} 개", rooms.getTotalElements());
+            Page<MultChatRoomDTO> rooms = multChatRoomService.getPublicChatRooms(pageable, memberNo);
+            log.info("전체 채팅방 목록 조회 완료 - {} 개", rooms.getTotalElements());
             return ResponseEntity.ok(rooms);
         } catch (Exception e) {
-            log.error("멀티채팅방 목록 조회 오류", e);
+            log.error("전체 채팅방 목록 조회 오류", e);
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -45,12 +48,15 @@ public class MultChatController {
     @GetMapping("/rooms/popular")
     public ResponseEntity<Page<MultChatRoomDTO>> getPopularRooms(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        log.info("인기 멀티채팅방 목록 조회 - page: {}, size: {}", page, size);
+            @RequestParam(defaultValue = "10") int size,
+            @AuthenticationPrincipal MemberDTO memberDTO) {
+        
+        Long memberNo = memberDTO != null ? memberDTO.getMemberNo() : null;
+        log.info("인기 멀티채팅방 목록 조회 - page: {}, size: {}, memberNo: {}", page, size, memberNo);
         
         try {
             Pageable pageable = PageRequest.of(page, size);
-            Page<MultChatRoomDTO> rooms = multChatRoomService.getPopularChatRooms(pageable);
+            Page<MultChatRoomDTO> rooms = multChatRoomService.getPopularChatRooms(pageable, memberNo);
             return ResponseEntity.ok(rooms);
         } catch (Exception e) {
             log.error("인기 멀티채팅방 목록 조회 오류", e);
@@ -62,16 +68,20 @@ public class MultChatController {
     @GetMapping("/rooms/recent")
     public ResponseEntity<Page<MultChatRoomDTO>> getRecentRooms(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        log.info("최근 활성 멀티채팅방 목록 조회 - page: {}, size: {}", page, size);
+            @RequestParam(defaultValue = "10") int size,
+            @AuthenticationPrincipal MemberDTO memberDTO) {
+        
+        Long memberNo = memberDTO != null ? memberDTO.getMemberNo() : null;
+        log.info("최근 활성 멀티채팅방 목록 조회 - page: {}, size: {}, memberNo: {}", page, size, memberNo);
         
         try {
             Pageable pageable = PageRequest.of(page, size);
-            Page<MultChatRoomDTO> rooms = multChatRoomService.getRecentActiveChatRooms(pageable);
+            Page<MultChatRoomDTO> rooms = multChatRoomService.getRecentActiveChatRooms(pageable, memberNo);
             return ResponseEntity.ok(rooms);
         } catch (Exception e) {
             log.error("최근 활성 멀티채팅방 목록 조회 오류", e);
-            return ResponseEntity.internalServerError().build();        }
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     // 내가 참여 중인 채팅방 목록 조회 (인증 필요)
@@ -116,14 +126,15 @@ public class MultChatController {
             @RequestBody MultChatRoomDTO request,
             @AuthenticationPrincipal MemberDTO memberDTO) {
         
-        log.info("멀티채팅방 생성 요청 - memberNo: {}", memberDTO.getMemberNo());
+        log.info("멀티채팅방 생성 요청 - memberNo: {}, roomType: {}, hasPassword: {}", 
+                memberDTO.getMemberNo(), request.getRoomType(), request.isHasPassword());
         
         try {
             MultChatRoomDTO room = multChatRoomService.createChatRoom(request, memberDTO.getMemberNo());
             log.info("멀티채팅방 생성 완료 - roomId: {}", room.getNo());
             return ResponseEntity.ok(room);
         } catch (Exception e) {
-            log.error("멀티채팅방 생성 오류", e);
+            log.error("멀티채팅방 생성 오류 - memberNo: {}, error: {}", memberDTO.getMemberNo(), e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -169,8 +180,24 @@ public class MultChatController {
                 "success", true,
                 "message", "채팅방에서 나갔습니다."
             ));
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             log.error("멀티채팅방 퇴장 오류 - roomId: {}, memberNo: {}", roomId, memberDTO.getMemberNo(), e);
+            
+            // 비즈니스 로직 에러의 경우 400 Bad Request 반환
+            if (e.getMessage().contains("참가 중이지 않은") || e.getMessage().contains("찾을 수 없습니다")) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()
+                ));
+            }
+            
+            // 기타 런타임 에러의 경우 500 Internal Server Error
+            return ResponseEntity.internalServerError().body(Map.of(
+                "success", false,
+                "message", "서버 오류가 발생했습니다."
+            ));
+        } catch (Exception e) {
+            log.error("멀티채팅방 퇴장 예상치 못한 오류 - roomId: {}, memberNo: {}", roomId, memberDTO.getMemberNo(), e);
             return ResponseEntity.internalServerError().body(Map.of(
                 "success", false,
                 "message", "서버 오류가 발생했습니다."

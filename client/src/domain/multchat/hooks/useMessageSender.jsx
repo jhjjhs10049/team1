@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import websocketService from "../../global/service/websocketService";
+import websocketService from "../services/multChatWebSocketService";
 
 /**
  * 메시지 전송을 관리하는 커스텀 훅

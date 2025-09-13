@@ -95,7 +95,8 @@ const MultChatRoomCreate = () => {
         maxParticipants: formData.maxParticipants,
         roomType: formData.roomType,
         status: "ACTIVE",
-        hasPassword: formData.roomType === "PRIVATE" && formData.password,
+        hasPassword: formData.roomType === "PRIVATE" && !!formData.password,
+        password: formData.roomType === "PRIVATE" ? formData.password : null, // 비밀번호 추가
       };
 
       console.log("채팅방 생성 요청:", roomData);
@@ -150,11 +151,10 @@ const MultChatRoomCreate = () => {
               value={formData.roomName}
               onChange={handleInputChange}
               placeholder="채팅방 이름을 입력하세요"
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors ${
-                errors.roomName
-                  ? "border-red-500 ring-2 ring-red-200"
-                  : "border-gray-300"
-              }`}
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors ${errors.roomName
+                ? "border-red-500 ring-2 ring-red-200"
+                : "border-gray-300"
+                }`}
             />
             {errors.roomName && (
               <div className="flex items-center mt-1 text-red-600 text-sm">
@@ -178,11 +178,10 @@ const MultChatRoomCreate = () => {
               onChange={handleInputChange}
               placeholder="채팅방에 대한 간단한 설명을 입력하세요 (선택사항)"
               rows={3}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors resize-vertical ${
-                errors.description
-                  ? "border-red-500 ring-2 ring-red-200"
-                  : "border-gray-300"
-              }`}
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors resize-vertical ${errors.description
+                ? "border-red-500 ring-2 ring-red-200"
+                : "border-gray-300"
+                }`}
             />
             {errors.description && (
               <div className="flex items-center mt-1 text-red-600 text-sm">
@@ -210,11 +209,10 @@ const MultChatRoomCreate = () => {
               onChange={handleInputChange}
               min="2"
               max="100"
-              className={`w-32 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors ${
-                errors.maxParticipants
-                  ? "border-red-500 ring-2 ring-red-200"
-                  : "border-gray-300"
-              }`}
+              className={`w-32 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors ${errors.maxParticipants
+                ? "border-red-500 ring-2 ring-red-200"
+                : "border-gray-300"
+                }`}
             />
             {errors.maxParticipants && (
               <div className="flex items-center mt-1 text-red-600 text-sm">
@@ -282,11 +280,10 @@ const MultChatRoomCreate = () => {
                   value={formData.password}
                   onChange={handleInputChange}
                   placeholder="4자 이상 입력하세요"
-                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors ${
-                    errors.password
-                      ? "border-red-500 ring-2 ring-red-200"
-                      : "border-gray-300"
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors ${errors.password
+                    ? "border-red-500 ring-2 ring-red-200"
+                    : "border-gray-300"
+                    }`}
                 />
                 {errors.password && (
                   <div className="flex items-center mt-1 text-red-600 text-sm">
@@ -310,11 +307,10 @@ const MultChatRoomCreate = () => {
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
                   placeholder="비밀번호를 다시 입력하세요"
-                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors ${
-                    errors.confirmPassword
-                      ? "border-red-500 ring-2 ring-red-200"
-                      : "border-gray-300"
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors ${errors.confirmPassword
+                    ? "border-red-500 ring-2 ring-red-200"
+                    : "border-gray-300"
+                    }`}
                 />
                 {errors.confirmPassword && (
                   <div className="flex items-center mt-1 text-red-600 text-sm">

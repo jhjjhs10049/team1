@@ -59,7 +59,7 @@ const TodayRecord = ({
     <div className="space-y-4">
       {/* 몸무게와 칼로리 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {" "}
+
         {/* 몸무게 */}
         <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
           <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
@@ -83,7 +83,7 @@ const TodayRecord = ({
               저장
             </button>
           </div>
-        </div>{" "}
+        </div>
         {/* 칼로리 */}
         <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
           <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
@@ -111,7 +111,7 @@ const TodayRecord = ({
 
       {/* 운동시간과 수분섭취 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {" "}
+
         {/* 운동시간 */}
         <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
           <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
@@ -148,11 +148,10 @@ const TodayRecord = ({
                 {Array.from({ length: 8 }).map((_, i) => (
                   <div
                     key={i}
-                    className={`w-4 h-6 rounded-md transition-colors duration-200 ${
-                      i < filled
+                    className={`w-4 h-6 rounded-md transition-colors duration-200 ${i < filled
                         ? "bg-gradient-to-t from-blue-400 to-blue-300 shadow-sm"
                         : "bg-gray-200"
-                    }`}
+                      }`}
                   />
                 ))}
               </div>
@@ -164,11 +163,10 @@ const TodayRecord = ({
             {/* 수분 조절 버튼 */}
             <div className="flex gap-2">
               <button
-                className={`flex-1 px-2 py-1 rounded-lg border font-medium text-xs transition-colors ${
-                  water <= 0
+                className={`flex-1 px-2 py-1 rounded-lg border font-medium text-xs transition-colors ${water <= 0
                     ? "opacity-50 cursor-not-allowed border-gray-200 text-gray-400"
                     : "border-red-300 text-red-600 hover:bg-red-50"
-                }`}
+                  }`}
                 disabled={water <= 0}
                 onClick={() => {
                   const delta = Math.min(200, water);

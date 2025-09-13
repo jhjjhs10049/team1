@@ -78,8 +78,7 @@ const GymPurchasePage = () => {
     try {
       // 결제 확인
       const paymentConfirmed = window.confirm(
-        `${gymName} PT ${count}회\n트레이너: ${
-          selectedTrainer?.name
+        `${gymName} PT ${count}회\n트레이너: ${selectedTrainer?.name
         }\n날짜: ${selectedDate}\n시간: ${selectedTime}\n총 ${totalPrice.toLocaleString()}원을 결제하시겠습니까?`
       );
       if (!paymentConfirmed) return;
@@ -141,7 +140,7 @@ const GymPurchasePage = () => {
               </option>
             ))}
           </select>
-        </section>{" "}
+        </section>
         {/* 날짜 선택 */}
         <section style={styles.section}>
           <label htmlFor="date" style={styles.label}>
@@ -202,7 +201,7 @@ const GymPurchasePage = () => {
                 {selectedDate} (
                 {
                   ["일", "월", "화", "수", "목", "금", "토"][
-                    new Date(selectedDate).getDay()
+                  new Date(selectedDate).getDay()
                   ]
                 }
                 )
@@ -211,7 +210,7 @@ const GymPurchasePage = () => {
             <div style={styles.summaryRow}>
               <span style={styles.summaryLabel}>시간:</span>
               <span style={styles.summaryValue}>
-                {selectedTime} ~{" "}
+                {selectedTime} ~
                 {(() => {
                   const [hour, minute] = selectedTime.split(":").map(Number);
                   const endHour = hour + 1;
@@ -249,7 +248,7 @@ const GymPurchasePage = () => {
             <label style={styles.label}>예상 요금</label>
             <div style={styles.priceBox}>{totalPrice.toLocaleString()}원</div>
           </div>
-        </section>{" "}
+        </section>
         {/* 결제 버튼 */}
         <div style={styles.buttonRow}>
           <button style={styles.secondaryBtn} onClick={() => navigate(-1)}>

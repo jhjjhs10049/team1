@@ -123,54 +123,57 @@ public class MultChatWebSocketController {
     }
 
     /**
-     * 채팅방 나가기 처리
-     * 클라이언트가 /app/multchat/leave/{roomNo}로 나가기 요청을 보낼 때 처리
+     * 채팅방 나가기 처리 (실제 나가기 버튼을 누른 경우만)
+     * - 메시지 타입이 "REAL_LEAVE"인 경우에만 실제 나가기 처리
+     * - 다른 경우는 무시하여 페이지 이동/새로고침으로 인한 자동 나가기 방지
      */
     @MessageMapping("/multchat/leave/{roomNo}")
     public void leaveRoom(@DestinationVariable Long roomNo,
                          @Payload MultChatMessageDTO message,
                          SimpMessageHeaderAccessor headerAccessor) {
-        log.info("단체채팅방 나가기 - 방번호: {}, 사용자: {}", roomNo, message.getSenderNickname());
-
-        try {
-            // 사용자 정보 추출
-            MemberDTO memberDTO = userService.extractUserInfo(headerAccessor);
-            if (!userService.isUserAuthenticated(memberDTO)) {
-                log.error("인증되지 않은 사용자의 채팅방 나가기 시도");
-                return;
-            }
-
-            // 최종 닉네임 결정
-            String finalNickname = userService.determineFinalNickname(memberDTO, message.getSenderNickname());
-
-            // 채팅방에서 사용자 제거
-            boolean removed = roomManager.removeUserFromRoom(roomNo, finalNickname);
-
-            if (removed) {
-                log.info("사용자 {}님이 채팅방 {}에서 나감 - 현재 온라인: {}명", 
-                         finalNickname, roomNo, roomManager.getOnlineUserCount(roomNo));
-
-                // 채팅방에 다른 사용자가 있으면 알림 전송
-                if (roomManager.getOnlineUserCount(roomNo) > 0) {
-                    // 사용자 목록 업데이트 알림
-                    List<String> onlineUsers = List.copyOf(roomManager.getOnlineUsers(roomNo));
-                    List<Map<String, Object>> participantList = roomManager.getParticipantList(roomNo);
-                    notificationService.sendUserListUpdate(roomNo, onlineUsers, participantList);
+        
+        // 실제 나가기 버튼을 누른 경우에만 처리
+        if ("REAL_LEAVE".equals(message.getMessageType())) {
+            log.info("✅ 실제 나가기 버튼 클릭 - 방번호: {}, 사용자: {}", roomNo, message.getSenderNickname());
+            
+            try {
+                // 사용자 정보 추출
+                MemberDTO memberDTO = userService.extractUserInfo(headerAccessor);
+                if (!userService.isUserAuthenticated(memberDTO)) {
+                    log.error("인증되지 않은 사용자의 나가기 시도");
+                    return;
                 }
 
-                // 나가기 시스템 메시지 전송
-                MultChatMessageDTO leaveMessage = messageHandler.handleSystemMessage(
-                    roomNo, finalNickname + "님이 나가셨습니다.", "LEAVE", finalNickname
-                );
+                // 최종 닉네임 결정
+                String finalNickname = userService.determineFinalNickname(memberDTO, message.getSenderNickname());
+                
+                // 웹소켓 메모리에서 사용자 제거
+                boolean removed = roomManager.removeUserFromRoom(roomNo, finalNickname);
+                
+                if (removed) {
+                    log.info("사용자 {}님이 채팅방 {}에서 나감 - 현재 온라인: {}명", 
+                             finalNickname, roomNo, roomManager.getOnlineUserCount(roomNo));
 
-                // 나가기 알림 브로드캐스트
-                notificationService.broadcastMessage(roomNo, leaveMessage);
+                    // 나가기 시스템 메시지 생성 및 브로드캐스트
+                    MultChatMessageDTO leaveMessage = messageHandler.handleSystemMessage(
+                        roomNo, finalNickname + "님이 나가셨습니다.", "LEAVE", finalNickname
+                    );
+                    notificationService.broadcastMessage(roomNo, leaveMessage);
+                    
+                    // 사용자 목록 업데이트 알림 전송
+                    if (roomManager.getOnlineUserCount(roomNo) > 0) {
+                        List<String> onlineUsers = List.copyOf(roomManager.getOnlineUsers(roomNo));
+                        List<Map<String, Object>> participantList = roomManager.getParticipantList(roomNo);
+                        notificationService.sendUserListUpdate(roomNo, onlineUsers, participantList);
+                    }
+                }
+
+            } catch (Exception e) {
+                log.error("채팅방 나가기 처리 중 오류 발생", e);
             }
-
-            log.info("단체채팅방 나가기 완료 - 방번호: {}", roomNo);
-
-        } catch (Exception e) {
-            log.error("단체채팅방 나가기 처리 중 오류 발생", e);
+        } else {
+            log.info("🚫 페이지 이동/새로고침으로 인한 임시 나가기 요청 무시 - 방번호: {}, 사용자: {} (채팅방 소속 유지)", 
+                     roomNo, message.getSenderNickname());
         }
     }    /**
      * WebSocket 연결 끊김 이벤트 처리 (세션 지속성 개선)

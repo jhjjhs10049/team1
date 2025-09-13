@@ -16,7 +16,11 @@ import useSchedules from "../hooks/useSchedules";
 /** ─────────────────────────────────────────────
  *  일정 시드 데이터 제거 - 빈 배열로 시작
  * ──────────────────────────────────────────── */
-const todayISO = new Date().toISOString().split("T")[0]; // 오늘 날짜 (YYYY-MM-DD)
+// timezone 문제 해결: 로컬 날짜를 YYYY-MM-DD 형식으로 안전하게 변환
+const today = new Date();
+const todayISO = `${today.getFullYear()}-${String(
+  today.getMonth() + 1
+).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
 // 하드코딩된 시드 데이터 제거 - 사용자가 직접 일정을 추가하도록 변경
 const _dailySchedulesSeed = [];
@@ -34,9 +38,12 @@ const diffMinutes = (startTime, endTime) => {
 const SchedulePage = () => {
   /** 날짜 상태 */
   const [selectedDate, setSelectedDate] = useState(new Date(todayISO));
-  const selectedISO = selectedDate
-    .toISOString()
-    .split("T")[0]; /** 날짜별 기록 상태 (선택된 날짜에 따라 동적으로 변경) */
+  // timezone 문제 해결: 로컬 날짜를 YYYY-MM-DD 형식으로 안전하게 변환
+  const selectedISO = `${selectedDate.getFullYear()}-${String(
+    selectedDate.getMonth() + 1
+  ).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`;
+
+  /** 날짜별 기록 상태 (선택된 날짜에 따라 동적으로 변경) */
   const { currentRecord: todayStats, updateRecord } =
     useDailyRecords(selectedDate);
 
@@ -70,11 +77,20 @@ const SchedulePage = () => {
   } = useRoutines();
   /** 선택한 날짜의 일정 리스트 */
   const todayList = useMemo(
-    () =>
-      schedules.filter((d) => {
-        const scheduleDate = new Date(d.date).toISOString().split("T")[0];
+    () => {
+      console.log("전체 schedules:", schedules);
+      console.log("selectedISO:", selectedISO);
+
+      const filtered = schedules.filter((d) => {
+        // d.date가 YYYY-MM-DD 형식이라고 가정하고 직접 비교
+        const scheduleDate = d.date.split("T")[0]; // ISO 문자열일 경우를 대비
+        console.log("비교중 - scheduleDate:", scheduleDate, "selectedISO:", selectedISO);
         return scheduleDate === selectedISO;
-      }),
+      });
+
+      console.log("필터링된 todayList:", filtered);
+      return filtered;
+    },
     [schedules, selectedISO]
   );
 
@@ -151,9 +167,9 @@ const SchedulePage = () => {
     const donePercent =
       weeklyPlannedMinutes > 0
         ? Math.min(
-            100,
-            Math.round((weeklyCompletedMinutes / weeklyPlannedMinutes) * 100)
-          )
+          100,
+          Math.round((weeklyCompletedMinutes / weeklyPlannedMinutes) * 100)
+        )
         : 0;
 
     setWeeklyGoal((prev) => ({ ...prev, donePercent }));
@@ -179,7 +195,7 @@ const SchedulePage = () => {
             <div className="mt-4 text-center">
               <div className="w-16 h-1 bg-gradient-to-r from-teal-400 to-teal-600 rounded-full mx-auto"></div>
             </div>
-          </div>{" "}
+          </div>
           {/* 상단 지표 카드들 - 분할된 컴포넌트 사용 */}
           <StatsSection
             todayStats={todayStats}
@@ -203,7 +219,7 @@ const SchedulePage = () => {
             addSchedule={addSchedule}
             saveSchedule={saveSchedule}
             deleteSchedule={deleteSchedule}
-          />{" "}
+          />
           {/* 하단: 루틴 + 오늘 기록 + AI 코치 - 분할된 컴포넌트 사용 */}
           <BottomSection
             routines={routines}

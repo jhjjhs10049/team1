@@ -66,6 +66,35 @@ public class MultChatNotificationService {
     }
 
     /**
+     * 채팅방 리스트 글로벌 업데이트 알림 전송
+     * 새로운 채팅방 생성, 채팅방 정보 변경, 참가자 수 변경 등에 사용
+     */
+    public void sendRoomListUpdate(String updateType, Long roomNo, Object roomData) {
+        String globalDestination = "/topic/multchat/rooms/updates";
+        
+        Map<String, Object> roomUpdateNotification = Map.of(
+            "type", updateType, // "ROOM_CREATED", "ROOM_UPDATED", "ROOM_DELETED", "PARTICIPANTS_UPDATED"
+            "roomNo", roomNo,
+            "roomData", roomData,
+            "timestamp", System.currentTimeMillis()
+        );
+        
+        messagingTemplate.convertAndSend(globalDestination, roomUpdateNotification);
+        log.info("📤 채팅방 리스트 글로벌 업데이트 알림 전송 - 타입: {}, 방번호: {}, 목적지: {}", 
+                 updateType, roomNo, globalDestination);
+    }
+
+    /**
+     * 참가자 수 변경 알림 (채팅방 리스트용)
+     */
+    public void sendParticipantCountUpdate(Long roomNo, int currentParticipants) {
+        Map<String, Object> roomData = Map.of(
+            "currentParticipants", currentParticipants
+        );
+        sendRoomListUpdate("PARTICIPANTS_UPDATED", roomNo, roomData);
+    }
+
+    /**
      * 알림 목적지 생성
      */
     public String getNotificationDestination(Long roomNo) {

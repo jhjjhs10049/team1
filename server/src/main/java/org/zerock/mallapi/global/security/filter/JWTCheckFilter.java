@@ -106,7 +106,7 @@ public class JWTCheckFilter extends OncePerRequestFilter {
             return true;
         }
 
-        // /api/multchat의 GET 요청 중 공개 API만 체크하지 않음
+        // /api/multchat의 GET 요청 중 일부만 공개
         if(path.startsWith("/api/multchat") && "GET".equals(method)) {
             // 개인 정보 관련 요청은 인증 필요
             if(path.contains("/my") || 
@@ -115,8 +115,16 @@ public class JWTCheckFilter extends OncePerRequestFilter {
                 log.debug("JWT filter applied (private multchat access): {}", path);
                 return false; // 개인 정보 관련은 JWT 체크 필요
             }
-            log.debug("JWT filter excluded (public multchat access): {}", path);
-            return true;
+            // 채팅방 목록 API들은 이제 인증 필요 (참가 상태 확인을 위해)
+            if(path.equals("/api/multchat/rooms") || 
+               path.equals("/api/multchat/rooms/popular") || 
+               path.equals("/api/multchat/rooms/recent")) {
+                log.debug("JWT filter applied (multchat list with user info): {}", path);
+                return false; // 인증 필요
+            }
+            // 나머지 GET 요청도 인증 필요
+            log.debug("JWT filter applied (other multchat GET): {}", path);
+            return false;
         }
         
         // /api/board의 GET 요청만 체크하지 않음 (목록 조회, 상세 조회, 댓글 조회)

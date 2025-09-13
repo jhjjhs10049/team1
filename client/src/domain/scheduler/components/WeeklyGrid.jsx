@@ -55,11 +55,10 @@ const WeeklyGrid = ({
         {days.map((d, idx) => (
           <div
             key={d}
-            className={`text-center text-sm font-semibold py-3 rounded-lg transition-colors ${
-              highlightDayIdx === idx
+            className={`text-center text-sm font-semibold py-3 rounded-lg transition-colors ${highlightDayIdx === idx
                 ? "bg-teal-100 text-teal-700"
                 : "text-gray-600"
-            }`}
+              }`}
           >
             {d}
           </div>
@@ -121,21 +120,18 @@ const WeeklyGrid = ({
                         onKeyDown={
                           onBlockClick
                             ? (e) =>
-                                (e.key === "Enter" || e.key === " ") &&
-                                onBlockClick(b)
+                              (e.key === "Enter" || e.key === " ") &&
+                              onBlockClick(b)
                             : undefined
                         }
-                        className={`absolute left-1 right-1 rounded-xl text-xs text-white p-3 shadow-md hover:shadow-lg transition-all duration-200 ${
-                          b.color
-                        } ${
-                          onBlockClick
+                        className={`absolute left-1 right-1 rounded-xl text-xs text-white p-3 shadow-md hover:shadow-lg transition-all duration-200 ${b.color
+                          } ${onBlockClick
                             ? "cursor-pointer hover:scale-105 focus:outline-2 focus:outline-white/70"
                             : ""
-                        }`}
+                          }`}
                         style={{ top, height, minHeight: 32 }}
-                        title={`${b.title} • ${b.start}~${b.end}${
-                          b.gym ? " • " + b.gym : ""
-                        }`}
+                        title={`${b.title} • ${b.start}~${b.end}${b.gym ? " • " + b.gym : ""
+                          }`}
                       >
                         <div className="font-semibold truncate text-shadow-sm">
                           {b.title}
@@ -155,7 +151,7 @@ const WeeklyGrid = ({
             ))}
           </div>
         </div>
-      </div>{" "}
+      </div>
       {/* 동적 범례 - 실제 일정 데이터에서 사용된 색상만 표시 */}
       {blocks.length > 0 && (
         <div className="mt-4 flex flex-wrap gap-3 text-xs text-gray-600">

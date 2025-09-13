@@ -120,7 +120,7 @@ const BottomSection = ({
                 weekday: "short",
               })}
             </div>
-          </div>{" "}
+          </div>
           <TodayRecord
             weight={todayStats.weightKg}
             water={todayStats.waterMl}

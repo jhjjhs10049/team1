@@ -1,5 +1,8 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import ParticipantList from "./ParticipantList";
+import MultChatExitModal from "./MultChatExitModal";
+import useMultChatExit from "../hooks/useMultChatExit";
 
 /**
  * 채팅방 사이드바 컴포넌트 (참가자 목록 + 채팅방 정보)
@@ -15,15 +18,24 @@ const ChatRoomSidebar = ({
   showSidebar,
   setShowSidebar,
 }) => {
+  const navigate = useNavigate();
+
+  // 나가기 기능 훅 사용
+  const {
+    showExitConfirm,
+    isLeaving,
+    isCreator,
+    handleLeave,
+    handleExitConfirm,
+    handleExitCancel,
+  } = useMultChatExit(roomInfo, username, navigate);
   return (
     <div
-      className={`${
-        isMobile
-          ? `fixed inset-y-0 left-0 z-50 w-72 bg-white transform transition-transform duration-300 ease-in-out ${
-              showSidebar ? "translate-x-0" : "-translate-x-full"
-            } shadow-lg`
+      className={`${isMobile
+          ? `fixed inset-y-0 left-0 z-50 w-72 bg-white transform transition-transform duration-300 ease-in-out ${showSidebar ? "translate-x-0" : "-translate-x-full"
+          } shadow-lg`
           : "w-80 bg-white border-r border-gray-200"
-      } flex flex-col overflow-hidden`}
+        } flex flex-col overflow-hidden`}
     >
       {/* 헤더 */}
       <div className="p-4 border-b border-gray-200 bg-teal-500 text-white">
@@ -52,9 +64,8 @@ const ChatRoomSidebar = ({
         </div>
         <div className="flex items-center space-x-2">
           <div
-            className={`w-3 h-3 rounded-full ${
-              isWebSocketConnected ? "bg-green-400" : "bg-red-400"
-            }`}
+            className={`w-3 h-3 rounded-full ${isWebSocketConnected ? "bg-green-400" : "bg-red-400"
+              }`}
           ></div>
           <span className="text-sm">
             {isWebSocketConnected ? "연결됨" : "연결 중..."}
@@ -96,10 +107,14 @@ const ChatRoomSidebar = ({
             <div className="text-xs text-gray-500">나</div>
           </div>
           <button
-            onClick={onLeave}
-            className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition duration-200"
+            onClick={handleLeave}
+            disabled={isLeaving}
+            className={`px-2 py-1 text-xs text-white rounded transition duration-200 ${isLeaving
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-red-500 hover:bg-red-600"
+              }`}
           >
-            나가기
+            {isLeaving ? "나가는 중..." : "나가기"}
           </button>
         </div>
       </div>
@@ -107,6 +122,15 @@ const ChatRoomSidebar = ({
       <div className="flex-1 overflow-y-auto">
         <ParticipantList participants={participants} currentUser={username} />
       </div>
+
+      {/* 나가기 확인 모달 */}
+      <MultChatExitModal
+        isOpen={showExitConfirm}
+        onConfirm={handleExitConfirm}
+        onCancel={handleExitCancel}
+        roomInfo={roomInfo}
+        isCreator={isCreator}
+      />
     </div>
   );
 };

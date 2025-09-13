@@ -44,7 +44,7 @@ const CalendarSection = ({
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           {/* 달력 + 선택일 일정 */}
           <div className="space-y-4 xl:col-span-1">
-            {/* 달력 (점 표시: 해당 날짜에 일정 존재) */}{" "}
+            {/* 달력 (점 표시: 해당 날짜에 일정 존재) */}
             <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
               <Calendar
                 onChange={setSelectedDate}
@@ -52,14 +52,28 @@ const CalendarSection = ({
                 calendarType="gregory" // 일요일 시작으로 설정
                 formatDay={(locale, date) => date.getDate()}
                 tileContent={({ date }) => {
-                  const dateIso = date.toISOString().split("T")[0];
+                  // timezone 문제 해결: 로컬 날짜를 YYYY-MM-DD 형식으로 안전하게 변환
+                  const dateIso = `${date.getFullYear()}-${String(
+                    date.getMonth() + 1
+                  ).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+
+                  // 오늘 날짜 계산 (timezone 문제 해결)
+                  const today = new Date();
+                  const todayIso = `${today.getFullYear()}-${String(
+                    today.getMonth() + 1
+                  ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+                  // 오늘 이후의 날짜인지 확인 (오늘 포함)
+                  const isTodayOrFuture = dateIso >= todayIso;
+
                   const has = schedules.some((d) => {
-                    const scheduleDate = new Date(d.date)
-                      .toISOString()
-                      .split("T")[0];
+                    // d.date가 YYYY-MM-DD 형식이라고 가정하고 직접 비교
+                    const scheduleDate = d.date.split("T")[0]; // ISO 문자열일 경우를 대비
                     return scheduleDate === dateIso;
                   });
-                  return has ? (
+
+                  // 오늘 이후의 날짜이면서 일정이 있는 경우에만 점 표시
+                  return has && isTodayOrFuture ? (
                     <div className="mt-1 w-2 h-2 bg-teal-500 rounded-full mx-auto" />
                   ) : null;
                 }}
@@ -120,7 +134,7 @@ const CalendarSection = ({
             setScheduleEditModal({ open: false, item: null });
           }}
         />
-      )}{" "}
+      )}
       {/* 일정 삭제 확인 모달 */}
       {scheduleDeleteModal.open && (
         <ConfirmModal

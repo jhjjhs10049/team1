@@ -174,8 +174,10 @@ class MultChatWebSocketService {
   }
   /**
    * 채팅방 나가기
+   * @param {string} roomNo - 채팅방 번호 (선택사항, 기본값: 현재 채팅방)
+   * @param {boolean} isRealLeave - 실제 나가기 여부 (기본값: false, 임시 나가기)
    */
-  leaveRoom(roomNo = null) {
+  leaveRoom(roomNo = null, isRealLeave = false) {
     const targetRoomNo = roomNo || this.currentRoomNo;
 
     if (!this.isConnected || !this.client || !targetRoomNo) {
@@ -189,29 +191,35 @@ class MultChatWebSocketService {
       return true;
     }
 
-    console.log(`🚪 채팅방 ${targetRoomNo} 나가기 시도`);
+    if (isRealLeave) {
+      console.log(`🚪 실제 나가기 - 채팅방 ${targetRoomNo}`);
+      
+      try {
+        // 실제 나가기 메시지 전송
+        this.client.publish({
+          destination: `/app/multchat/leave/${targetRoomNo}`,
+          body: JSON.stringify({
+            messageType: "REAL_LEAVE",
+            content: "나가기",
+          }),
+        });
 
-    try {
-      // 나가기 메시지 전송
-      this.client.publish({
-        destination: `/app/multchat/leave/${targetRoomNo}`,
-        body: JSON.stringify({
-          messageType: "LEAVE",
-          content: "나가기",
-        }),
-      });
+        // 해당 채팅방 관련 구독 모두 해제
+        this.unsubscribeRoom(targetRoomNo);
 
-      // 해당 채팅방 관련 구독 모두 해제
-      this.unsubscribeRoom(targetRoomNo);
+        // 현재 채팅방 정보 초기화
+        this.currentRoomNo = null;
 
-      // 현재 채팅방 정보 초기화
-      this.currentRoomNo = null;
-
-      console.log(`✅ 채팅방 ${targetRoomNo} 나가기 완료`);
+        console.log(`✅ 실제 나가기 완료 - 채팅방 ${targetRoomNo}`);
+        return true;
+      } catch (error) {
+        console.error("❌ 실제 나가기 실패:", error);
+        return false;
+      }
+    } else {
+      console.log(`🚫 임시 나가기 요청 무시 - 채팅방 ${targetRoomNo} (나가기 버튼을 누르지 않는 한 소속 유지)`);
+      // 임시 나가기는 아무것도 하지 않음
       return true;
-    } catch (error) {
-      console.error("❌ 채팅방 나가기 실패:", error);
-      return false;
     }
   }
   /**
@@ -270,6 +278,93 @@ class MultChatWebSocketService {
     } catch (error) {
       console.error("❌ 메시지 전송 실패:", error);
       return false;
+    }
+  }
+
+  /**
+   * 메시지 전송 (다형성 지원)
+   * - sendMessage(roomNo, content) : 멀티 채팅 방식
+   * - sendMessage('/app/path', data) : 1:1 채팅 호환 방식
+   */
+  sendMessage(arg1, arg2) {
+    if (!this.isConnected || !this.client) {
+      console.error("❌ 웹소켓이 연결되지 않았습니다.");
+      return false;
+    }
+
+    // 첫 번째 인자가 문자열이고 '/app/'으로 시작하는 경우 - 1:1 채팅 호환 모드
+    if (typeof arg1 === 'string' && arg1.startsWith('/app/')) {
+      const destination = arg1;
+      const data = arg2;
+      
+      try {
+        console.log(`📤 메시지 전송 (호환 모드) - 목적지: ${destination}`);
+        console.log(`📦 전송 데이터:`, data);
+
+        this.client.publish({
+          destination: destination,
+          body: JSON.stringify(data),
+        });
+
+        console.log(`✅ 메시지 전송 완료 (호환 모드)`);
+        return true;
+      } catch (error) {
+        console.error("❌ 메시지 전송 실패 (호환 모드):", error);
+        return false;
+      }
+    } else {
+      // 멀티 채팅 방식 (roomNo, content)
+      const roomNo = arg1;
+      const content = arg2;
+      
+      if (!content || content.trim() === "") {
+        console.warn("⚠️ 빈 메시지는 전송할 수 없습니다.");
+        return false;
+      }
+
+      // 이모지 포함 메시지 상세 로깅
+      const containsEmoji =
+        /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u.test(
+          content
+        );
+
+      console.log(`📤 메시지 전송 - 방번호: ${roomNo}`);
+      console.log(`📝 내용: ${content}`);
+      console.log(`🎭 이모지 포함: ${containsEmoji}`);
+
+      if (containsEmoji) {
+        console.log(`🔍 이모지 상세 정보:`);
+        for (let i = 0; i < content.length; i++) {
+          const char = content.charAt(i);
+          const code = content.codePointAt(i);
+          if (code > 127) {
+            // Non-ASCII 문자
+            console.log(
+              `  - 문자: ${char}, 유니코드: U+${code.toString(16).toUpperCase()}`
+            );
+          }
+        }
+      }
+
+      try {
+        const messageData = {
+          messageType: "CHAT",
+          content: content.trim(),
+        };
+
+        console.log(`📦 전송 데이터:`, JSON.stringify(messageData));
+
+        this.client.publish({
+          destination: `/app/multchat/send/${roomNo}`,
+          body: JSON.stringify(messageData),
+        });
+
+        console.log(`✅ 메시지 전송 완료`);
+        return true;
+      } catch (error) {
+        console.error("❌ 메시지 전송 실패:", error);
+        return false;
+      }
     }
   }
 
@@ -376,6 +471,41 @@ class MultChatWebSocketService {
     console.log(`📡 채팅방 ${roomNo}의 모든 구독 해제 완료`);
   }
   /**
+   * 일반적인 구독 메서드 (1:1 채팅 웹소켓 서비스와 호환성)
+   */
+  subscribe(destination, callback) {
+    if (!this.isConnected || !this.client) {
+      console.error("❌ 웹소켓이 연결되지 않아 구독할 수 없습니다.");
+      return null;
+    }
+
+    try {
+      console.log(`📡 구독 시작: ${destination}`);
+      
+      const subscription = this.client.subscribe(destination, (message) => {
+        try {
+          const data = JSON.parse(message.body);
+          console.log(`📥 메시지 수신 (${destination}):`, data);
+          if (callback && typeof callback === 'function') {
+            callback(data);
+          }
+        } catch (error) {
+          console.error(`❌ 메시지 파싱 오류 (${destination}):`, error);
+        }
+      });
+
+      this.subscriptions.set(destination, subscription);
+      this.messageCallbacks.set(destination, callback);
+      
+      console.log(`✅ 구독 완료: ${destination}`);
+      return subscription;
+    } catch (error) {
+      console.error(`❌ 구독 실패 (${destination}):`, error);
+      return null;
+    }
+  }
+
+  /**
    * 특정 구독 해제
    */
   unsubscribe(destination) {
@@ -434,9 +564,11 @@ class MultChatWebSocketService {
   disconnect() {
     console.log("🔌 WebSocket 연결 해제 시작");
 
-    // 현재 채팅방에서 나가기
+    // 🚫 자동 나가기 방지: 연결 해제 시에는 채팅방에서 나가지 않음
+    // 사용자가 명시적으로 나가기 버튼을 누르지 않는 한 채팅방 소속 유지
     if (this.currentRoomNo) {
-      this.leaveRoom(this.currentRoomNo);
+      console.log(`🔄 연결 해제 시 채팅방 ${this.currentRoomNo} 소속 유지 (임시 나가기)`);
+      // this.leaveRoom(this.currentRoomNo); // 자동 나가기 비활성화
     }
 
     // 모든 구독 해제
@@ -461,6 +593,13 @@ class MultChatWebSocketService {
     this.connectionPromise = null;
 
     console.log("✅ WebSocket 연결 해제 완료");
+  }
+
+  /**
+   * 연결 상태 확인
+   */
+  isWebSocketConnected() {
+    return this.isConnected;
   }
 
   /**

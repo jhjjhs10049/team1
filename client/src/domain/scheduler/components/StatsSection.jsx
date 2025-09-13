@@ -43,7 +43,7 @@ const StatsSection = ({ todayStats, setStat, selectedDate }) => {
 
   return (
     <>
-      {" "}
+
       {/* 상단 지표 카드들 */}
       <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
         <div className="flex justify-between items-center mb-6">
@@ -59,7 +59,7 @@ const StatsSection = ({ todayStats, setStat, selectedDate }) => {
               weekday: "short",
             })}
           </div>
-        </div>{" "}
+        </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
             label="칼로리"
@@ -96,7 +96,7 @@ const StatsSection = ({ todayStats, setStat, selectedDate }) => {
                 value: todayStats.weightKg || 70,
               })
             }
-          />{" "}
+          />
           <StatCard
             label="수분섭취"
             value={`${todayStats.waterMl || 0} ml`}

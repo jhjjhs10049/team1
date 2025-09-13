@@ -1,5 +1,6 @@
 const DailyScheduleList = ({ dateISO, items, onEdit, onDelete, onAdd }) => {
   console.log("선택된 날짜:", dateISO);
+  console.log("전달받은 items:", items);
 
   // 시간 포맷팅 함수 추가
   const formatTime = (isoString) => {
@@ -12,13 +13,18 @@ const DailyScheduleList = ({ dateISO, items, onEdit, onDelete, onAdd }) => {
     });
   };
 
-  // 선택된 날짜를 한국어 형식으로 포맷
-  const displayDate = new Date(dateISO).toLocaleDateString("ko-KR", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    weekday: "short",
-  });
+  // 선택된 날짜를 한국어 형식으로 포맷 (timezone 이슈 해결)
+  const displayDate = (() => {
+    // YYYY-MM-DD 문자열을 로컬 시간대로 안전하게 파싱
+    const [year, month, day] = dateISO.split('-').map(Number);
+    const date = new Date(year, month - 1, day); // 로컬 시간대 기준
+    return date.toLocaleDateString("ko-KR", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      weekday: "short",
+    });
+  })();
 
   return (
     <div className="bg-gray-50 border border-gray-200 rounded-xl p-5">
@@ -52,7 +58,7 @@ const DailyScheduleList = ({ dateISO, items, onEdit, onDelete, onAdd }) => {
                 <h5 className="font-semibold text-gray-800">{s.title}</h5>
               </div>
               <div className="space-y-1 mb-3">
-                {" "}
+
                 <div className="text-sm text-gray-600 flex items-center gap-2">
                   <span className="text-gray-400">🕐</span>
                   {formatTime(s.startTime)} ~ {formatTime(s.endTime)}
@@ -60,7 +66,7 @@ const DailyScheduleList = ({ dateISO, items, onEdit, onDelete, onAdd }) => {
                 <div className="text-sm text-gray-600 flex items-center gap-2">
                   <span className="text-gray-400">📍</span>
                   {s.gym}
-                </div>{" "}
+                </div>
                 {s.trainerName && (
                   <div className="text-sm text-gray-600 flex items-center gap-2">
                     <span className="text-gray-400">👤</span>

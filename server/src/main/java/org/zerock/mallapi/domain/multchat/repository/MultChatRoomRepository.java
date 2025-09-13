@@ -11,7 +11,11 @@ import java.util.List;
 
 public interface MultChatRoomRepository extends JpaRepository<MultChatRoom, Long> {
 
-    // 활성 상태인 공개방 목록 조회 (페이징)
+    // 활성 상태인 모든 채팅방 목록 조회 (공개/비공개 모두, 페이징)
+    @Query("SELECT mcr FROM MultChatRoom mcr WHERE mcr.status = 'ACTIVE' ORDER BY mcr.createdAt DESC")
+    Page<MultChatRoom> findActiveRooms(Pageable pageable);
+
+    // 활성 상태인 공개방 목록 조회 (페이징) - 기존 호환성 유지
     @Query("SELECT mcr FROM MultChatRoom mcr WHERE mcr.status = 'ACTIVE' AND mcr.roomType = 'PUBLIC' ORDER BY mcr.createdAt DESC")
     Page<MultChatRoom> findActivePublicRooms(Pageable pageable);
 
@@ -22,9 +26,9 @@ public interface MultChatRoomRepository extends JpaRepository<MultChatRoom, Long
            "ORDER BY mcr.modifiedAt DESC")
     List<MultChatRoom> findMyActiveRooms(@Param("memberNo") Long memberNo);
 
-    // 방 이름으로 검색 (활성 상태인 공개방만)
+    // 방 이름으로 검색 (활성 상태인 모든 채팅방)
     @Query("SELECT mcr FROM MultChatRoom mcr " +
-           "WHERE mcr.status = 'ACTIVE' AND mcr.roomType = 'PUBLIC' " +
+           "WHERE mcr.status = 'ACTIVE' " +
            "AND mcr.roomName LIKE %:roomName% " +
            "ORDER BY mcr.createdAt DESC")
     Page<MultChatRoom> findByRoomNameContaining(@Param("roomName") String roomName, Pageable pageable);
@@ -33,15 +37,15 @@ public interface MultChatRoomRepository extends JpaRepository<MultChatRoom, Long
     @Query("SELECT mcr FROM MultChatRoom mcr WHERE mcr.creator.memberNo = :creatorNo ORDER BY mcr.createdAt DESC")
     List<MultChatRoom> findByCreatorNo(@Param("creatorNo") Long creatorNo);
 
-    // 인기 채팅방 목록 (참가자 수 기준)
+    // 인기 채팅방 목록 (참가자 수 기준, 모든 활성 채팅방)
     @Query("SELECT mcr FROM MultChatRoom mcr " +
-           "WHERE mcr.status = 'ACTIVE' AND mcr.roomType = 'PUBLIC' " +
+           "WHERE mcr.status = 'ACTIVE' " +
            "ORDER BY mcr.currentParticipants DESC, mcr.createdAt DESC")
     Page<MultChatRoom> findPopularRooms(Pageable pageable);
 
-    // 최근 활성화된 채팅방 목록
+    // 최근 활성화된 채팅방 목록 (모든 활성 채팅방)
     @Query("SELECT mcr FROM MultChatRoom mcr " +
-           "WHERE mcr.status = 'ACTIVE' AND mcr.roomType = 'PUBLIC' " +
+           "WHERE mcr.status = 'ACTIVE' " +
            "ORDER BY mcr.modifiedAt DESC")
     Page<MultChatRoom> findRecentActiveRooms(Pageable pageable);
 }

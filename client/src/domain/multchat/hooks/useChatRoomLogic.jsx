@@ -24,7 +24,9 @@ const useChatRoomLogic = () => {
     if (!loginState.nickname || typeof loginState.nickname !== "string")
       return "사용자";
     return loginState.nickname;
-  }, [loginState]); // 웹소켓 연결
+  }, [loginState]);
+
+  // 웹소켓 연결
   const {
     isWebSocketConnected,
     participants,
@@ -51,17 +53,20 @@ const useChatRoomLogic = () => {
     username,
     loginState,
     isWebSocketConnected
-  ); // 실시간 메시지 구독
+  );
+
+  // 실시간 메시지 구독
   useMessageSubscription(roomNo, isWebSocketConnected, addMessage);
-  // 채팅방 정보 로드 및 웹소켓 연결 대기
+
+  // 채팅방 정보 로드
   useEffect(() => {
     const loadRoomInfo = async () => {
       if (!roomNo) return;
       try {
         setLoading(true);
-        const data = await getChatRoomDetail(roomNo);
-        setLocalRoomInfo(data);
-        setWsRoomInfo(data);
+        const roomData = await getChatRoomDetail(roomNo);
+        setLocalRoomInfo(roomData);
+        setWsRoomInfo(roomData);
 
         // 웹소켓 연결이 완료될 때까지 대기
         console.log("⏳ 웹소켓 연결 대기 중...");
@@ -70,8 +75,9 @@ const useChatRoomLogic = () => {
         setLoading(false);
       }
     };
+
     loadRoomInfo();
-  }, [roomNo, setWsRoomInfo, loginState]);
+  }, [roomNo, setWsRoomInfo]);
 
   // 웹소켓 연결 완료 후 로딩 해제
   useEffect(() => {
@@ -79,11 +85,37 @@ const useChatRoomLogic = () => {
       console.log("✅ 웹소켓 연결 완료 - 채팅방 입장 가능");
       setLoading(false);
     }
-  }, [isWebSocketConnected, roomInfo]); // 사용자 입장/퇴장 알림 개선
+  }, [isWebSocketConnected, roomInfo]);
+
+  // 사용자 입장/퇴장 알림 개선 (처음 입장 시에만 알림)
   useEffect(() => {
     if (isWebSocketConnected && roomNo && username && loginState) {
-      console.log("🚪 채팅방 입장 알림 전송:", { roomNo, username });
-      notifyUserJoined(roomNo, username);
+      // localStorage에서 이전 입장 기록 확인
+      const joinedRoomsKey = `multchat_joined_rooms_${loginState.memberNo}`;
+      const joinedRooms = JSON.parse(localStorage.getItem(joinedRoomsKey) || '{}');
+      const isFirstJoin = !joinedRooms[roomNo];
+
+      console.log("🚪 채팅방 입장 상태 확인:", {
+        roomNo,
+        username,
+        isFirstJoin,
+        joinedRooms
+      });
+
+      // 처음 입장하는 경우에만 입장 알림 전송
+      if (isFirstJoin) {
+        console.log("🎉 첫 입장! 입장 알림 전송:", { roomNo, username });
+        notifyUserJoined(roomNo, username);
+
+        // 입장 기록을 localStorage에 저장
+        joinedRooms[roomNo] = {
+          joinedAt: new Date().toISOString(),
+          nickname: username
+        };
+        localStorage.setItem(joinedRoomsKey, JSON.stringify(joinedRooms));
+      } else {
+        console.log("🔄 재입장 - 입장 알림 생략:", { roomNo, username });
+      }
 
       // 서버 응답 확인용 타이머 (디버깅)
       setTimeout(() => {
@@ -100,32 +132,25 @@ const useChatRoomLogic = () => {
       }, 1000);
     }
     return () => {
-      // ✅ 개선: useEffect cleanup에서 자동 퇴장 알림 제거
-      // 사용자가 명시적으로 "나가기" 버튼을 누를 때만 퇴장 처리
-      // 페이지 새로고침이나 다른 페이지 이동 시에는 세션 유지
-      console.log(
-        "🔄 채팅방 Hook cleanup - 세션 유지됨 (명시적 나가기만 퇴장 처리)"
-      );
+      // 🚫 나가기 버튼을 누르지 않는 한 채팅방 소속 유지
+      // 브라우저 종료/새로고침/페이지 이동 시에도 채팅방에서 나가지 않음
+      console.log("🔄 채팅방 Hook cleanup - 채팅방 소속 유지");
     };
   }, [
     isWebSocketConnected,
     roomNo,
     username,
     notifyUserJoined,
-    notifyUserLeft,
-    loginState?.memberNo, // ✅ participants.length 제거 - 무한 루프 방지
+    loginState?.memberNo,
   ]);
 
-  // 채팅방 나가기
+  // � 브라우저 종료/새로고침 시에도 채팅방 소속 유지
+  // (이전의 beforeunload 이벤트 제거)
+
+  // 🚫 자동 나가기 로직 완전 차단 - 나가기 버튼을 누르지 않는 한 절대 나가지 않음
   const handleLeave = (onLeave) => {
-    if (isWebSocketConnected && roomNo && username) {
-      notifyUserLeft(roomNo, username);
-    }
-    if (onLeave && typeof onLeave === "function") {
-      onLeave();
-    } else {
-      window.location.href = "/multchat";
-    }
+    console.log("🚫 자동 나가기 차단 - 나가기 버튼을 누르지 않는 한 절대 나가지 않습니다.");
+    // 어떤 콜백도 실행하지 않음 - 완전 차단
   };
 
   // 메시지 전송 (로컬 추가 콜백 포함)

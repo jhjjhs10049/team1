@@ -11,6 +11,7 @@ export const WEBSOCKET_DESTINATIONS = {
     MULT_CHAT_ROOM: (roomNo) => `/topic/multchat/room/${roomNo}`, // 특정 단체채팅방 메시지
     MULT_CHAT_ROOM_NOTIFICATION: (roomNo) =>
       `/topic/multchat/room/${roomNo}/notification`, // 특정 단체채팅방 알림
+    MULT_CHAT_ROOMS_UPDATES: "/topic/multchat/rooms/updates", // 전체 채팅방 리스트 업데이트
   },
 
   // Queue (점대점) - 1:1 전달

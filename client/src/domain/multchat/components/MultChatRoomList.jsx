@@ -4,8 +4,12 @@ import {
   getPublicChatRooms,
   searchChatRooms,
   getMyChatRooms,
+  joinChatRoom,
 } from "../api/multChatApi";
 import useMultChatWebSocket from "../hooks/useMultChatWebSocket";
+import websocketService from "../services/multChatWebSocketService";
+import { WEBSOCKET_DESTINATIONS } from "../../global/constants/websocketDestinations";
+import PasswordModal from "./PasswordModal";
 
 const MultChatRoomList = () => {
   const navigate = useNavigate();
@@ -21,7 +25,13 @@ const MultChatRoomList = () => {
     totalPages: 0,
     totalElements: 0,
     hasNext: false,
-  }); // 웹소켓 Hook 사용 (목록 페이지용 - isInRoom: false)
+  });
+
+  // 비밀번호 모달 상태
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState(null); // 웹소켓 Hook 사용 (목록 페이지용 - isInRoom: false)
   const { isWebSocketConnected, registerRoomUpdateCallback } =
     useMultChatWebSocket(null, false);
 
@@ -60,9 +70,9 @@ const MultChatRoomList = () => {
           rooms.map((room) =>
             room.no === notification.roomNo
               ? {
-                  ...room,
-                  currentParticipants: notification.currentParticipants,
-                }
+                ...room,
+                currentParticipants: notification.currentParticipants,
+              }
               : room
           );
 
@@ -73,6 +83,75 @@ const MultChatRoomList = () => {
 
     registerRoomUpdateCallback(handleRoomUpdate);
   }, [registerRoomUpdateCallback]);
+
+  // 글로벌 채팅방 리스트 업데이트 구독
+  useEffect(() => {
+    if (!isWebSocketConnected) return;
+
+    const globalUpdateDestination = WEBSOCKET_DESTINATIONS.TOPIC.MULT_CHAT_ROOMS_UPDATES;
+    console.log("📡 글로벌 채팅방 리스트 업데이트 구독 시작:", globalUpdateDestination);
+
+    const subscription = websocketService.subscribe(
+      globalUpdateDestination,
+      (notification) => {
+        console.log("📥 글로벌 채팅방 업데이트 수신:", notification);
+
+        if (!notification || typeof notification !== "object") {
+          console.warn("⚠️ 잘못된 글로벌 업데이트 알림 형식:", notification);
+          return;
+        }
+
+        const { type, roomNo, roomData } = notification;
+
+        // 참가자 수 업데이트 처리
+        if (type === "PARTICIPANTS_UPDATED" && roomData?.currentParticipants !== undefined) {
+          console.log(`📊 채팅방 ${roomNo} 참가자 수 업데이트: ${roomData.currentParticipants}명`);
+
+          // 실시간 정보 업데이트
+          setRealTimeRoomInfo((prev) => {
+            const newMap = new Map(prev);
+            newMap.set(roomNo, {
+              currentParticipants: roomData.currentParticipants,
+              lastUpdated: new Date().toISOString(),
+            });
+            return newMap;
+          });
+
+          // 현재 표시중인 채팅방 목록 업데이트
+          const updateRoomList = (rooms) =>
+            rooms.map((room) =>
+              room.no === roomNo
+                ? {
+                  ...room,
+                  currentParticipants: roomData.currentParticipants,
+                }
+                : room
+            );
+
+          setChatRooms((prev) => updateRoomList(prev));
+          setMyRooms((prev) => updateRoomList(prev));
+        }
+
+        // 새로운 채팅방 생성 처리
+        else if (type === "ROOM_CREATED" && roomData) {
+          console.log(`🆕 새로운 채팅방 생성: ${roomData.roomName} (${roomNo})`);
+
+          // 공개 탭이 활성화된 경우 모든 새 채팅방을 목록에 추가
+          if (currentTab === "public") {
+            setChatRooms((prev) => [roomData, ...prev]);
+          }
+        }
+      }
+    );
+
+    // 컴포넌트 언마운트 시 구독 해제
+    return () => {
+      if (subscription && subscription.unsubscribe) {
+        subscription.unsubscribe();
+        console.log("📡 글로벌 채팅방 리스트 업데이트 구독 해제");
+      }
+    };
+  }, [isWebSocketConnected]);
 
   // 공개 채팅방 목록 조회
   const loadPublicChatRooms = useCallback(
@@ -141,7 +220,71 @@ const MultChatRoomList = () => {
 
   // 채팅방 입장
   const handleJoinRoom = (roomNo) => {
-    navigate(`/multchat/room/${roomNo}`);
+    // 해당 채팅방 정보 찾기
+    const room = [...chatRooms, ...myRooms].find(r => r.no === roomNo);
+
+    if (!room) {
+      console.error("채팅방 정보를 찾을 수 없습니다.");
+      return;
+    }
+
+    // 이미 참가 중인 채팅방이면 비밀번호 없이 바로 입장
+    if (room.isParticipating) {
+      console.log("이미 참가 중인 채팅방 - 바로 입장");
+      navigate(`/multchat/room/${roomNo}`);
+      return;
+    }
+
+    // 비공개 방이고 비밀번호가 있는 경우 비밀번호 모달 표시
+    if (room.roomType === "PRIVATE" || room.hasPassword) {
+      console.log("비공개 채팅방 - 비밀번호 모달 표시");
+      setSelectedRoom(room);
+      setShowPasswordModal(true);
+      setPasswordError(null);
+    } else {
+      // 공개방인 경우 바로 이동
+      console.log("공개 채팅방 - 바로 입장");
+      navigate(`/multchat/room/${roomNo}`);
+    }
+  };
+
+  // 비밀번호 확인 및 채팅방 참가
+  const handlePasswordSubmit = async (password) => {
+    if (!selectedRoom) return;
+
+    setPasswordLoading(true);
+    setPasswordError(null);
+
+    try {
+      // 실제 API로 비밀번호 검증 및 채팅방 참가
+      await joinChatRoom(selectedRoom.no, password);
+
+      // 성공 시 모달 닫고 채팅방으로 이동
+      setShowPasswordModal(false);
+      setSelectedRoom(null);
+      navigate(`/multchat/room/${selectedRoom.no}`);
+    } catch (error) {
+      console.error("채팅방 참가 실패:", error);
+
+      // 에러 메시지 설정
+      if (error.response?.status === 400 && error.response?.data?.message?.includes("비밀번호")) {
+        setPasswordError("비밀번호가 올바르지 않습니다.");
+      } else if (error.response?.data?.message) {
+        setPasswordError(error.response.data.message);
+      } else {
+        setPasswordError("채팅방 참가에 실패했습니다.");
+      }
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
+  // 비밀번호 모달 취소
+  const handlePasswordCancel = () => {
+    setShowPasswordModal(false);
+    setSelectedRoom(null);
+    setPasswordError(null);
+    setPasswordLoading(false);
   };
 
   // 채팅방 생성
@@ -170,30 +313,33 @@ const MultChatRoomList = () => {
         {/* 웹소켓 연결 상태 표시 */}
         <div className="absolute top-3 right-3 flex items-center space-x-2">
           <div
-            className={`w-2 h-2 rounded-full ${
-              isWebSocketConnected ? "bg-green-400" : "bg-red-400"
-            }`}
+            className={`w-2 h-2 rounded-full ${isWebSocketConnected ? "bg-green-400" : "bg-red-400"
+              }`}
             title={isWebSocketConnected ? "실시간 연결됨" : "연결 끊어짐"}
           />
-          {room.roomType === "PRIVATE" && (
+          {(room.roomType === "PRIVATE" || room.hasPassword) && (
             <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
               🔒 비공개
             </span>
           )}
           <span
-            className={`text-xs px-2 py-1 rounded-full ${
-              room.status === "ACTIVE"
-                ? "bg-teal-100 text-teal-800"
-                : "bg-gray-100 text-gray-800"
-            }`}
+            className={`text-xs px-2 py-1 rounded-full ${room.status === "ACTIVE"
+              ? "bg-teal-100 text-teal-800"
+              : "bg-gray-100 text-gray-800"
+              }`}
           >
             {room.status === "ACTIVE" ? "활성" : "비활성"}
           </span>
         </div>
 
         <div className="flex justify-between items-start mb-3 pr-16">
-          <h3 className="text-lg font-semibold text-gray-900 truncate">
+          <h3 className="text-lg font-semibold text-gray-900 truncate flex items-center">
             {room.roomName}
+            {(room.roomType === "PRIVATE" || room.hasPassword) && (
+              <span className="ml-2 text-yellow-600" title="비밀번호가 필요한 채팅방">
+                🔒
+              </span>
+            )}
           </h3>
         </div>
 
@@ -206,9 +352,8 @@ const MultChatRoomList = () => {
         <div className="flex items-center justify-between text-sm text-gray-500">
           <div className="flex items-center space-x-4">
             <span
-              className={`flex items-center ${
-                realtimeInfo ? "text-teal-600 font-medium" : ""
-              }`}
+              className={`flex items-center ${realtimeInfo ? "text-teal-600 font-medium" : ""
+                }`}
             >
               👥 {currentParticipants}/{room.maxParticipants}
               {realtimeInfo && (
@@ -241,16 +386,14 @@ const MultChatRoomList = () => {
     <div className="space-y-6">
       {/* 웹소켓 연결 상태 표시 */}
       <div
-        className={`rounded-lg p-3 text-sm flex items-center space-x-2 ${
-          isWebSocketConnected
-            ? "bg-green-50 text-green-700 border border-green-200"
-            : "bg-red-50 text-red-700 border border-red-200"
-        }`}
+        className={`rounded-lg p-3 text-sm flex items-center space-x-2 ${isWebSocketConnected
+          ? "bg-green-50 text-green-700 border border-green-200"
+          : "bg-red-50 text-red-700 border border-red-200"
+          }`}
       >
         <div
-          className={`w-2 h-2 rounded-full ${
-            isWebSocketConnected ? "bg-green-400" : "bg-red-400"
-          }`}
+          className={`w-2 h-2 rounded-full ${isWebSocketConnected ? "bg-green-400" : "bg-red-400"
+            }`}
         />
         <span>
           {isWebSocketConnected
@@ -263,21 +406,19 @@ const MultChatRoomList = () => {
         <div className="flex space-x-1">
           <button
             onClick={() => setCurrentTab("public")}
-            className={`px-4 py-2 rounded-lg font-medium border shadow-sm hover:shadow-md transition-all duration-200 ${
-              currentTab === "public"
-                ? "bg-teal-500 text-white border-teal-500"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200"
-            }`}
+            className={`px-4 py-2 rounded-lg font-medium border shadow-sm hover:shadow-md transition-all duration-200 ${currentTab === "public"
+              ? "bg-teal-500 text-white border-teal-500"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200"
+              }`}
           >
-            공개 채팅방
+            채팅방
           </button>
           <button
             onClick={() => setCurrentTab("my")}
-            className={`px-4 py-2 rounded-lg font-medium border shadow-sm hover:shadow-md transition-all duration-200 ${
-              currentTab === "my"
-                ? "bg-teal-500 text-white border-teal-500"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200"
-            }`}
+            className={`px-4 py-2 rounded-lg font-medium border shadow-sm hover:shadow-md transition-all duration-200 ${currentTab === "my"
+              ? "bg-teal-500 text-white border-teal-500"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200"
+              }`}
           >
             내 채팅방
           </button>
@@ -395,6 +536,16 @@ const MultChatRoomList = () => {
           )}
         </>
       )}
+
+      {/* 비밀번호 모달 */}
+      <PasswordModal
+        show={showPasswordModal}
+        roomInfo={selectedRoom}
+        onJoin={handlePasswordSubmit}
+        onCancel={handlePasswordCancel}
+        loading={passwordLoading}
+        error={passwordError}
+      />
     </div>
   );
 };

@@ -58,6 +58,9 @@ public class MultChatRoomManager {
      * 채팅방에서 사용자 제거 (방장이 나가면 방 삭제)
      */
     public boolean removeUserFromRoom(Long roomNo, String nickname) {
+        log.warn("🚨 removeUserFromRoom 호출됨! roomNo: {}, nickname: {}", roomNo, nickname);
+        log.warn("🚨 호출 스택: ", new Exception("removeUserFromRoom 호출 위치 추적"));
+        
         Set<String> users = roomUsers.get(roomNo);
         if (users != null) {
             boolean removed = users.remove(nickname);

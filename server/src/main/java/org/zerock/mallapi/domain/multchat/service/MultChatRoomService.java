@@ -13,7 +13,7 @@ public interface MultChatRoomService {
     MultChatRoomDTO createChatRoom(MultChatRoomDTO roomDTO, Long creatorNo);
 
     // 공개 채팅방 목록 조회 (페이징)
-    Page<MultChatRoomDTO> getPublicChatRooms(Pageable pageable);
+    Page<MultChatRoomDTO> getPublicChatRooms(Pageable pageable, Long memberNo);
 
     // 내가 참가 중인 채팅방 목록 조회
     List<MultChatRoomDTO> getMyChatRooms(Long memberNo);
@@ -31,10 +31,10 @@ public interface MultChatRoomService {
     Page<MultChatRoomDTO> searchChatRooms(String roomName, Pageable pageable);
 
     // 인기 채팅방 목록 조회
-    Page<MultChatRoomDTO> getPopularChatRooms(Pageable pageable);
+    Page<MultChatRoomDTO> getPopularChatRooms(Pageable pageable, Long memberNo);
 
     // 최근 활성화된 채팅방 목록 조회
-    Page<MultChatRoomDTO> getRecentActiveChatRooms(Pageable pageable);
+    Page<MultChatRoomDTO> getRecentActiveChatRooms(Pageable pageable, Long memberNo);
 
     // 채팅방 설정 수정 (방장만 가능)
     MultChatRoomDTO updateChatRoom(Long roomNo, MultChatRoomDTO updateDTO, Long memberNo);

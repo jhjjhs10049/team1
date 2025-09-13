@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import websocketService from "../../global/service/websocketService";
+import websocketService from "../services/multChatWebSocketService";
 import { WEBSOCKET_DESTINATIONS } from "../../global/constants/websocketDestinations";
 import useCustomLogin from "../../member/login/hooks/useCustomLogin";
 
@@ -95,9 +95,9 @@ const useMultChatWebSocket = (roomNo, isInRoom = false) => {
               setRoomInfo((prev) => {
                 const updated = prev
                   ? {
-                      ...prev,
-                      currentParticipants: participantList.length,
-                    }
+                    ...prev,
+                    currentParticipants: participantList.length,
+                  }
                   : null;
                 console.log("🏠 채팅방 정보 업데이트 (participants):", updated);
                 return updated;
@@ -136,9 +136,9 @@ const useMultChatWebSocket = (roomNo, isInRoom = false) => {
               setRoomInfo((prev) => {
                 const updated = prev
                   ? {
-                      ...prev,
-                      currentParticipants: notification.userCount,
-                    }
+                    ...prev,
+                    currentParticipants: notification.userCount,
+                  }
                   : null;
                 console.log("🏠 채팅방 정보 업데이트 (fallback):", updated);
                 return updated;
@@ -172,9 +172,9 @@ const useMultChatWebSocket = (roomNo, isInRoom = false) => {
             setRoomInfo((prev) =>
               prev
                 ? {
-                    ...prev,
-                    currentParticipants: (prev.currentParticipants || 0) + 1,
-                  }
+                  ...prev,
+                  currentParticipants: (prev.currentParticipants || 0) + 1,
+                }
                 : null
             );
             break;
@@ -192,12 +192,12 @@ const useMultChatWebSocket = (roomNo, isInRoom = false) => {
             setRoomInfo((prev) =>
               prev
                 ? {
-                    ...prev,
-                    currentParticipants: Math.max(
-                      (prev.currentParticipants || 1) - 1,
-                      0
-                    ),
-                  }
+                  ...prev,
+                  currentParticipants: Math.max(
+                    (prev.currentParticipants || 1) - 1,
+                    0
+                  ),
+                }
                 : null
             );
             break;
@@ -212,9 +212,9 @@ const useMultChatWebSocket = (roomNo, isInRoom = false) => {
               setRoomInfo((prev) =>
                 prev
                   ? {
-                      ...prev,
-                      currentParticipants: notification.participants.length,
-                    }
+                    ...prev,
+                    currentParticipants: notification.participants.length,
+                  }
                   : null
               );
             }
@@ -347,6 +347,8 @@ const useMultChatWebSocket = (roomNo, isInRoom = false) => {
     },
     [isWebSocketConnected, loginState]
   );
+
+  // 🚫 임시 퇴장 기능 제거 - 나가기 버튼을 누르지 않는 한 절대 퇴장하지 않음
   // 현재 참가자 수 계산
   const currentParticipantCount = participants.length; // 목록 페이지용 콜백 등록 함수
   const registerRoomUpdateCallback = useCallback((callback) => {

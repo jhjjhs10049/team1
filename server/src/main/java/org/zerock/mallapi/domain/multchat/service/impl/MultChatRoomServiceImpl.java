@@ -16,6 +16,7 @@ import org.zerock.mallapi.domain.multchat.repository.MultChatMessageRepository;
 import org.zerock.mallapi.domain.multchat.repository.MultChatRoomParticipantRepository;
 import org.zerock.mallapi.domain.multchat.repository.MultChatRoomRepository;
 import org.zerock.mallapi.domain.multchat.service.MultChatRoomService;
+import org.zerock.mallapi.domain.multchat.service.MultChatNotificationService;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -27,11 +28,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Log4j2
 @Transactional
-public class MultChatRoomServiceImpl implements MultChatRoomService {    private final MultChatRoomRepository chatRoomRepository;
+public class MultChatRoomServiceImpl implements MultChatRoomService {    
+    private final MultChatRoomRepository chatRoomRepository;
     private final MultChatRoomParticipantRepository participantRepository;
     private final MultChatMessageRepository messageRepository;
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+    private final MultChatNotificationService notificationService;
 
     @Override
     public MultChatRoomDTO createChatRoom(MultChatRoomDTO roomDTO, Long creatorNo) {
@@ -49,8 +52,12 @@ public class MultChatRoomServiceImpl implements MultChatRoomService {    private
                 .status(MultChatRoom.RoomStatus.valueOf(roomDTO.getStatus() != null ? roomDTO.getStatus() : "ACTIVE"))
                 .roomType(MultChatRoom.RoomType.valueOf(roomDTO.getRoomType() != null ? roomDTO.getRoomType() : "PUBLIC"))
                 .build();        // 비공개방인 경우 비밀번호 암호화 처리
-        if ("PRIVATE".equals(roomDTO.getRoomType()) && roomDTO.isHasPassword() && roomDTO.getPassword() != null) {
-            chatRoom.setPassword(passwordEncoder.encode(roomDTO.getPassword()));
+        if ("PRIVATE".equals(roomDTO.getRoomType())) {
+            if (roomDTO.getPassword() == null || roomDTO.getPassword().trim().isEmpty()) {
+                throw new RuntimeException("비공개 방은 비밀번호가 필요합니다.");
+            }
+            log.info("비공개 방 비밀번호 설정 - 방이름: {}", roomDTO.getRoomName());
+            chatRoom.setPassword(passwordEncoder.encode(roomDTO.getPassword().trim()));
         }
 
         MultChatRoom savedRoom = chatRoomRepository.save(chatRoom);
@@ -66,17 +73,22 @@ public class MultChatRoomServiceImpl implements MultChatRoomService {    private
 
         participantRepository.save(creatorParticipant);
 
+        // 새로운 채팅방 생성 글로벌 알림 전송
+        MultChatRoomDTO newRoomDTO = entityToDTO(savedRoom, creatorNo);
+        notificationService.sendRoomListUpdate("ROOM_CREATED", savedRoom.getNo(), newRoomDTO);
+
         log.info("단체 채팅방 생성 완료 - 방번호: {}", savedRoom.getNo());
-        return entityToDTO(savedRoom, creatorNo);
+        return newRoomDTO;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<MultChatRoomDTO> getPublicChatRooms(Pageable pageable) {
-        log.info("공개 채팅방 목록 조회 - 페이지: {}, 크기: {}", pageable.getPageNumber(), pageable.getPageSize());
+    public Page<MultChatRoomDTO> getPublicChatRooms(Pageable pageable, Long memberNo) {
+        log.info("모든 채팅방 목록 조회 - 페이지: {}, 크기: {}, 회원번호: {}", 
+                pageable.getPageNumber(), pageable.getPageSize(), memberNo);
 
-        Page<MultChatRoom> chatRooms = chatRoomRepository.findActivePublicRooms(pageable);
-        return chatRooms.map(room -> entityToDTO(room, null));
+        Page<MultChatRoom> chatRooms = chatRoomRepository.findActiveRooms(pageable);
+        return chatRooms.map(room -> entityToDTO(room, memberNo));
     }
 
     @Override
@@ -152,6 +164,9 @@ public class MultChatRoomServiceImpl implements MultChatRoomService {    private
         chatRoom.addParticipant(member);
         chatRoomRepository.save(chatRoom);
 
+        // 글로벌 채팅방 리스트 업데이트 알림 전송
+        notificationService.sendParticipantCountUpdate(roomNo, chatRoom.getCurrentParticipants());
+
         log.info("채팅방 참가 완료 - 방번호: {}, 회원번호: {}", roomNo, memberNo);
         return entityToDTO(chatRoom, memberNo);
     }
@@ -163,8 +178,9 @@ public class MultChatRoomServiceImpl implements MultChatRoomService {    private
         MultChatRoom chatRoom = chatRoomRepository.findById(roomNo)
                 .orElseThrow(() -> new RuntimeException("채팅방을 찾을 수 없습니다."));
 
+        // 활성 참가자만 조회하여 이미 나간 사용자는 자동으로 필터링
         MultChatRoomParticipant participant = participantRepository
-                .findByChatRoomNoAndMemberNo(roomNo, memberNo)
+                .findActiveByChatRoomNoAndMemberNo(roomNo, memberNo)
                 .orElseThrow(() -> new RuntimeException("참가 중이지 않은 채팅방입니다."));
 
         // 방장인 경우 특별 처리 (방장은 나갈 수 없거나, 방장 위임 후 나가기)
@@ -203,7 +219,13 @@ public class MultChatRoomServiceImpl implements MultChatRoomService {    private
         chatRoom.removeParticipant(participant.getMember());
         chatRoomRepository.save(chatRoom);
 
-        log.info("채팅방 나가기 완료 - 방번호: {}, 회원번호: {}", roomNo, memberNo);
+        // ✅ 개선: 웹소켓 실시간 알림은 WebSocket 컨트롤러에서 처리
+        // 여기서는 DB 업데이트만 수행하여 중복 알림 방지
+        
+        // 글로벌 채팅방 리스트 업데이트 알림만 전송 (참가자 수 변경)
+        notificationService.sendParticipantCountUpdate(roomNo, chatRoom.getCurrentParticipants());
+
+        log.info("채팅방 나가기 완료 (DB 업데이트) - 방번호: {}, 회원번호: {}", roomNo, memberNo);
     }
 
     // ...existing code... (다른 메소드들은 비슷한 패턴으로 구현)
@@ -219,16 +241,16 @@ public class MultChatRoomServiceImpl implements MultChatRoomService {    private
 
     @Override
     @Transactional(readOnly = true)
-    public Page<MultChatRoomDTO> getPopularChatRooms(Pageable pageable) {
+    public Page<MultChatRoomDTO> getPopularChatRooms(Pageable pageable, Long memberNo) {
         Page<MultChatRoom> chatRooms = chatRoomRepository.findPopularRooms(pageable);
-        return chatRooms.map(room -> entityToDTO(room, null));
+        return chatRooms.map(room -> entityToDTO(room, memberNo));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<MultChatRoomDTO> getRecentActiveChatRooms(Pageable pageable) {
+    public Page<MultChatRoomDTO> getRecentActiveChatRooms(Pageable pageable, Long memberNo) {
         Page<MultChatRoom> chatRooms = chatRoomRepository.findRecentActiveRooms(pageable);
-        return chatRooms.map(room -> entityToDTO(room, null));
+        return chatRooms.map(room -> entityToDTO(room, memberNo));
     }    @Override
     @Transactional(readOnly = true)
     public List<MultChatRoomDTO> getMyCreatedChatRooms(Long memberNo) {

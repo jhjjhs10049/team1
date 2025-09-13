@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import websocketService from "../../global/service/websocketService";
+import websocketService from "../services/multChatWebSocketService";
 import { WEBSOCKET_DESTINATIONS } from "../../global/constants/websocketDestinations";
 
 /**
