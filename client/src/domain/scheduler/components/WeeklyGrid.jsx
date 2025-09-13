@@ -39,14 +39,13 @@ const WeeklyGrid = ({
   dayShift = 0,
 }) => {
   const days = ["일", "월", "화", "수", "목", "금", "토"];
-  const hours = Array.from({ length: 15 }, (_, i) => i + 6); // 06~20시
+  const hours = Array.from({ length: 19 }, (_, i) => i + 4); // 04~22시
 
   return (
     <div className="bg-gray-50 border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <h4 className="font-semibold text-gray-800">주간 시간표</h4>
       </div>
-
       {/* 헤더 */}
       <div
         className="grid mb-2"
@@ -66,7 +65,6 @@ const WeeklyGrid = ({
           </div>
         ))}
       </div>
-
       {/* 본문: 눈금 */}
       <div className="relative border border-gray-200 rounded-lg overflow-hidden bg-white">
         <div
@@ -109,7 +107,7 @@ const WeeklyGrid = ({
                 {blocks
                   .filter((b) => colIndexForBlock(b, dayShift) === dayIdx)
                   .map((b) => {
-                    const top = (toHour(b.start) - 6) * HOUR_HEIGHT;
+                    const top = (toHour(b.start) - 4) * HOUR_HEIGHT;
                     const height =
                       (toHour(b.end) - toHour(b.start)) * HOUR_HEIGHT;
                     return (
@@ -157,15 +155,32 @@ const WeeklyGrid = ({
             ))}
           </div>
         </div>
-      </div>
-
-      {/* 범례 */}
-      <div className="mt-4 flex flex-wrap gap-3 text-xs text-gray-600">
-        <Legend color="bg-blue-500" label="PT/세션" />
-        <Legend color="bg-teal-500" label="유산소" />
-        <Legend color="bg-orange-500" label="하체 루틴" />
-        <Legend color="bg-purple-500" label="스트레칭" />
-      </div>
+      </div>{" "}
+      {/* 동적 범례 - 실제 일정 데이터에서 사용된 색상만 표시 */}
+      {blocks.length > 0 && (
+        <div className="mt-4 flex flex-wrap gap-3 text-xs text-gray-600">
+          {/* 실제 사용된 색상들을 유니크하게 추출해서 범례 생성 */}
+          {[...new Set(blocks.map((b) => b.color))]
+            .filter((color) => color) // 색상이 있는 것만
+            .map((color, index) => {
+              // 색상별 기본 라벨 매핑
+              const colorLabels = {
+                "bg-blue-500": "PT/세션",
+                "bg-teal-500": "유산소",
+                "bg-orange-500": "하체 운동",
+                "bg-purple-500": "스트레칭",
+                "bg-green-500": "기타 운동",
+                "bg-red-500": "개인 운동",
+                "bg-yellow-500": "그룹 운동",
+                "bg-pink-500": "재활 운동",
+                "bg-indigo-500": "근력 운동",
+                "bg-sky-500": "상체 운동",
+              };
+              const label = colorLabels[color] || `운동 ${index + 1}`;
+              return <Legend key={color} color={color} label={label} />;
+            })}
+        </div>
+      )}
     </div>
   );
 };

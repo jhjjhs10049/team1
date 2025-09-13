@@ -4,6 +4,11 @@ import Modal from "./Modal";
 const RoutineStartModal = ({ routine, onClose, onComplete }) => {
   const [done, setDone] = useState(() => new Set());
 
+  // exerciseList를 줄바꿈으로 분할하여 배열로 변환
+  const exercises = routine.exerciseList
+    ? routine.exerciseList.split("\n").filter((ex) => ex.trim())
+    : [];
+
   const toggle = (idx) =>
     setDone((prev) => {
       const n = new Set(prev);
@@ -16,10 +21,9 @@ const RoutineStartModal = ({ routine, onClose, onComplete }) => {
         <h3 className="text-xl font-semibold mb-6 text-gray-800 flex items-center gap-3">
           <span className="text-xl">🚀</span>
           {routine.name} 시작
-        </h3>
-
+        </h3>{" "}
         <div className="space-y-3 max-h-72 overflow-auto pr-2">
-          {routine.items.map((it, idx) => (
+          {exercises.map((exercise, idx) => (
             <label
               key={idx}
               className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
@@ -35,26 +39,24 @@ const RoutineStartModal = ({ routine, onClose, onComplete }) => {
                   done.has(idx) ? "line-through text-gray-400" : "text-gray-700"
                 } font-medium`}
               >
-                {it}
+                {exercise}
               </span>
             </label>
           ))}
         </div>
-
         <div className="flex justify-end gap-3 mt-8">
-          {" "}
           <button
             className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors font-medium"
             onClick={onClose}
           >
             닫기
-          </button>
+          </button>{" "}
           <button
             className="px-4 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-600 transition-colors font-medium"
             onClick={() => {
               onComplete?.({
                 doneCount: done.size,
-                total: routine.items.length,
+                total: exercises.length,
               });
               onClose?.();
             }}

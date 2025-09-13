@@ -1,6 +1,8 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import BasicLayout from "../../../layouts/BasicLayout.jsx";
+import { createSchedule } from "../../scheduler/api/scheduleApi.jsx";
+import { fetchGymDetail } from "../api/gymApi.jsx";
 
 const DUMMY_TRAINERS = [
   { id: 101, name: "홍길동", basePrice: 40000 },
@@ -8,24 +10,59 @@ const DUMMY_TRAINERS = [
   { id: 103, name: "최PT", basePrice: 60000 },
 ];
 
-const DUMMY_TIMES = [
-  "2025-09-01 09:00",
-  "2025-09-01 11:00",
-  "2025-09-01 14:00",
-  "2025-09-01 18:00",
-];
+// 오늘부터 2주간의 날짜 생성
+const generateDates = () => {
+  const dates = [];
+  const today = new Date();
+  for (let i = 0; i < 14; i++) {
+    const date = new Date(today);
+    date.setDate(today.getDate() + i);
+    dates.push(date.toISOString().split("T")[0]);
+  }
+  return dates;
+};
+
+// 운영 시간 (09:00 ~ 21:00, 1시간 간격) - PT 세션은 1시간 단위
+const generateTimeSlots = () => {
+  const times = [];
+  for (let hour = 9; hour <= 21; hour++) {
+    times.push(`${hour.toString().padStart(2, "0")}:00`);
+  }
+  return times;
+};
+
+const AVAILABLE_DATES = generateDates();
+const AVAILABLE_TIMES = generateTimeSlots();
 
 const GymPurchasePage = () => {
   const { gymno } = useParams(); // 라우터에서 :gymno로 설정했으므로
   const navigate = useNavigate();
-  // 더미: 헬스장 이름 (실제 연동 전까지 하드코딩)
-  const gymName = useMemo(() => {
-    if (gymno === "1") return "하드코딩 헬스장";
-    return `GYM #${gymno ?? "?"}`;
+  // 헬스장 정보 상태
+  const [gymInfo, setGymInfo] = useState(null);
+
+  // 실제 헬스장 정보 가져오기
+  useEffect(() => {
+    const fetchGymInfo = async () => {
+      try {
+        const data = await fetchGymDetail(gymno);
+        setGymInfo(data);
+      } catch (error) {
+        console.error("헬스장 정보 가져오기 실패:", error);
+        // 에러 시 하드코딩된 이름 사용
+        setGymInfo({ title: `헬스장 #${gymno}` });
+      }
+    };
+
+    if (gymno) {
+      fetchGymInfo();
+    }
   }, [gymno]);
+  // 헬스장 이름
+  const gymName = gymInfo?.title || `헬스장 #${gymno ?? "?"}`;
 
   const [trainerId, setTrainerId] = useState(DUMMY_TRAINERS[0].id);
-  const [time, setTime] = useState(DUMMY_TIMES[0]);
+  const [selectedDate, setSelectedDate] = useState(AVAILABLE_DATES[0]);
+  const [selectedTime, setSelectedTime] = useState(AVAILABLE_TIMES[0]);
   const [count, setCount] = useState(1);
 
   const selectedTrainer = useMemo(
@@ -37,25 +74,56 @@ const GymPurchasePage = () => {
     const unit = selectedTrainer?.basePrice ?? 0;
     return unit * count;
   }, [selectedTrainer, count]);
-  const handlePay = () => {
-    // 결제 자체는 더미 — 바로 confirm
-    const ok = window.confirm("스케줄러에 등록하시겠습니까?");
-    if (ok) {
+  const handlePay = async () => {
+    try {
+      // 결제 확인
+      const paymentConfirmed = window.confirm(
+        `${gymName} PT ${count}회\n트레이너: ${
+          selectedTrainer?.name
+        }\n날짜: ${selectedDate}\n시간: ${selectedTime}\n총 ${totalPrice.toLocaleString()}원을 결제하시겠습니까?`
+      );
+      if (!paymentConfirmed) return;
+
+      // 스케줄 등록을 위한 시간 계산
+      const startDateTime = new Date(`${selectedDate}T${selectedTime}:00`);
+      const endDateTime = new Date(startDateTime);
+      endDateTime.setHours(startDateTime.getHours() + 1); // 1시간 세션
+
+      // 스케줄 등록 데이터 준비
+      const scheduleData = {
+        date: selectedDate,
+        title: `${gymName} PT 세션`,
+        startTime: startDateTime.toISOString(),
+        endTime: endDateTime.toISOString(),
+        gym: gymName,
+        trainerName: selectedTrainer?.name,
+        color: "bg-teal-500", // 헬스장 색상 (Tailwind 클래스)
+      };
+
+      // 스케줄에 등록
+      await createSchedule(scheduleData);
+
+      alert("결제가 완료되었습니다!\n스케줄에 자동으로 등록되었습니다.");
       navigate("/scheduler/schedule");
+    } catch (error) {
+      console.error("결제 또는 스케줄 등록 실패:", error);
+      alert("처리 중 오류가 발생했습니다. 다시 시도해주세요.");
     }
   };
-
   return (
     <BasicLayout>
       <div style={styles.container}>
-        <h1 style={styles.title}>결제/등록</h1>
-
+        <div style={styles.header}>
+          <h1 style={styles.title}>💪 헬스장 PT 예약</h1>
+          <p style={styles.subtitle}>
+            날짜와 시간을 선택하여 PT 세션을 예약하세요
+          </p>
+        </div>
         {/* 헬스장 이름 */}
         <section style={styles.section}>
           <label style={styles.label}>헬스장</label>
           <div style={styles.fakeInput}>{gymName}</div>
         </section>
-
         {/* 트레이너 선택 */}
         <section style={styles.section}>
           <label htmlFor="trainer" style={styles.label}>
@@ -73,8 +141,31 @@ const GymPurchasePage = () => {
               </option>
             ))}
           </select>
+        </section>{" "}
+        {/* 날짜 선택 */}
+        <section style={styles.section}>
+          <label htmlFor="date" style={styles.label}>
+            날짜 선택
+          </label>
+          <select
+            id="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            style={styles.select}
+          >
+            {AVAILABLE_DATES.map((date) => {
+              const dateObj = new Date(date);
+              const dayName = ["일", "월", "화", "수", "목", "금", "토"][
+                dateObj.getDay()
+              ];
+              return (
+                <option key={date} value={date}>
+                  {date} ({dayName})
+                </option>
+              );
+            })}
+          </select>
         </section>
-
         {/* 시간 선택 */}
         <section style={styles.section}>
           <label htmlFor="time" style={styles.label}>
@@ -82,18 +173,60 @@ const GymPurchasePage = () => {
           </label>
           <select
             id="time"
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
+            value={selectedTime}
+            onChange={(e) => setSelectedTime(e.target.value)}
             style={styles.select}
           >
-            {DUMMY_TIMES.map((t) => (
-              <option key={t} value={t}>
-                {t}
+            {AVAILABLE_TIMES.map((time) => (
+              <option key={time} value={time}>
+                {time}
               </option>
             ))}
           </select>
         </section>
-
+        {/* 예약 정보 확인 */}
+        <section style={styles.section}>
+          <label style={styles.label}>예약 정보 확인</label>
+          <div style={styles.summaryBox}>
+            <div style={styles.summaryRow}>
+              <span style={styles.summaryLabel}>헬스장:</span>
+              <span style={styles.summaryValue}>{gymName}</span>
+            </div>
+            <div style={styles.summaryRow}>
+              <span style={styles.summaryLabel}>트레이너:</span>
+              <span style={styles.summaryValue}>{selectedTrainer?.name}</span>
+            </div>
+            <div style={styles.summaryRow}>
+              <span style={styles.summaryLabel}>날짜:</span>
+              <span style={styles.summaryValue}>
+                {selectedDate} (
+                {
+                  ["일", "월", "화", "수", "목", "금", "토"][
+                    new Date(selectedDate).getDay()
+                  ]
+                }
+                )
+              </span>
+            </div>
+            <div style={styles.summaryRow}>
+              <span style={styles.summaryLabel}>시간:</span>
+              <span style={styles.summaryValue}>
+                {selectedTime} ~{" "}
+                {(() => {
+                  const [hour, minute] = selectedTime.split(":").map(Number);
+                  const endHour = hour + 1;
+                  return `${endHour.toString().padStart(2, "0")}:${minute
+                    .toString()
+                    .padStart(2, "0")}`;
+                })()}
+              </span>
+            </div>
+            <div style={styles.summaryRow}>
+              <span style={styles.summaryLabel}>세션 횟수:</span>
+              <span style={styles.summaryValue}>{count}회</span>
+            </div>
+          </div>
+        </section>
         {/* 횟수/요금 */}
         <section style={styles.sectionRow}>
           <div style={{ flex: 1 }}>
@@ -116,15 +249,14 @@ const GymPurchasePage = () => {
             <label style={styles.label}>예상 요금</label>
             <div style={styles.priceBox}>{totalPrice.toLocaleString()}원</div>
           </div>
-        </section>
-
+        </section>{" "}
         {/* 결제 버튼 */}
         <div style={styles.buttonRow}>
           <button style={styles.secondaryBtn} onClick={() => navigate(-1)}>
-            이전
+            ← 이전
           </button>
           <button style={styles.primaryBtn} onClick={handlePay}>
-            결제하기
+            💳 {totalPrice.toLocaleString()}원 결제하기
           </button>
         </div>
       </div>
@@ -139,7 +271,24 @@ const styles = {
     padding: "1.5rem",
     fontFamily: "sans-serif",
   },
-  title: { marginTop: 0 },
+  header: {
+    textAlign: "center",
+    marginBottom: "2rem",
+    padding: "1.5rem",
+    background: "linear-gradient(135deg, #14b8a6, #0d9488)",
+    borderRadius: 12,
+    color: "#fff",
+  },
+  title: {
+    margin: 0,
+    fontSize: "1.8rem",
+    fontWeight: 700,
+  },
+  subtitle: {
+    margin: "0.5rem 0 0 0",
+    fontSize: "1rem",
+    opacity: 0.9,
+  },
   section: { marginBottom: "1rem" },
   sectionRow: {
     marginBottom: "1rem",
@@ -175,27 +324,56 @@ const styles = {
     fontSize: "1.05rem",
     background: "#fff",
   },
+  summaryBox: {
+    border: "1px solid #e5e7eb",
+    borderRadius: 8,
+    padding: "16px",
+    background: "#f9fafb",
+  },
+  summaryRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "8px",
+  },
+  summaryLabel: {
+    color: "#6b7280",
+    fontSize: "0.9rem",
+  },
+  summaryValue: {
+    color: "#1f2937",
+    fontWeight: 600,
+  },
   buttonRow: {
     display: "flex",
-    gap: 10,
-    justifyContent: "flex-end",
-    marginTop: "1.2rem",
+    gap: 12,
+    justifyContent: "space-between",
+    marginTop: "2rem",
   },
   primaryBtn: {
-    padding: "10px 14px",
-    background: "#14b8a6",
+    flex: 2,
+    padding: "14px 20px",
+    background: "linear-gradient(135deg, #14b8a6, #0d9488)",
     color: "#fff",
     border: "none",
     borderRadius: 8,
     cursor: "pointer",
+    fontSize: "1rem",
+    fontWeight: 600,
+    transition: "transform 0.2s, box-shadow 0.2s",
+    boxShadow: "0 4px 12px rgba(20, 184, 166, 0.3)",
   },
   secondaryBtn: {
-    padding: "10px 14px",
-    background: "#efefef",
-    color: "#333",
-    border: "1px solid #ddd",
+    flex: 1,
+    padding: "14px 20px",
+    background: "#f3f4f6",
+    color: "#374151",
+    border: "1px solid #d1d5db",
     borderRadius: 8,
     cursor: "pointer",
+    fontSize: "1rem",
+    fontWeight: 500,
+    transition: "background-color 0.2s",
   },
 };
 

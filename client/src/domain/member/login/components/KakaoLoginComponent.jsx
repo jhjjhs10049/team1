@@ -16,7 +16,6 @@ const KakaoLoginComponent = () => {
         to={link}
         className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
       >
-        <span className="text-lg">💬</span>
         카카오로 시작하기
       </Link>
     </div>

@@ -17,14 +17,13 @@ const ScheduleCreateModal = ({ dateISO, onClose, onCreate }) => {
     endClock: "08:00",
     gym: "",
     trainer: "",
-    color: "bg-blue-500",
+    color: "bg-teal-500",
   });
 
   const onChange = (e) => {
     const { name, value } = e.target;
     setForm((p) => ({ ...p, [name]: value }));
   };
-
   const handleCreate = () => {
     if (!form.title.trim()) return alert("제목을 입력하세요.");
     if (
@@ -33,13 +32,17 @@ const ScheduleCreateModal = ({ dateISO, onClose, onCreate }) => {
     ) {
       return alert("시간 형식이 올바르지 않습니다. (HH:MM)");
     }
+
+    // ISO 형식으로 시간 변환
+    const startDateTime = new Date(`${form.date}T${form.startClock}:00`);
+    const endDateTime = new Date(`${form.date}T${form.endClock}:00`);
     const item = {
       date: form.date, // 선택된 날짜
       title: form.title.trim(),
-      startTime: `${form.date} ${form.startClock}`,
-      endTime: `${form.date} ${form.endClock}`,
+      startTime: startDateTime.toISOString(),
+      endTime: endDateTime.toISOString(),
       gym: form.gym.trim() || "미정",
-      trainer: form.trainer.trim() || null,
+      trainerName: form.trainer.trim() || null, // trainer -> trainerName으로 변경
       color: form.color,
     };
     onCreate?.(item);
@@ -153,7 +156,6 @@ const ScheduleCreateModal = ({ dateISO, onClose, onCreate }) => {
         </div>
 
         <div className="flex justify-end gap-3 mt-8">
-          {" "}
           <button
             className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors font-medium"
             onClick={onClose}

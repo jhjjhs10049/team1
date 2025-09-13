@@ -115,7 +115,6 @@ const MapSidebar = ({
           </div>
         )}
         <div className="space-y-3">
-          {" "}
           {sortedGyms.map((g) => (
             <div
               key={g.gymNo}

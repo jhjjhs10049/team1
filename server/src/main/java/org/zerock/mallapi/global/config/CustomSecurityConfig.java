@@ -53,9 +53,11 @@ public class CustomSecurityConfig {
                 .requestMatchers("/api/member/check-**").permitAll() // 중복체크 허용
                 .requestMatchers("/api/member/kakao").permitAll() // 카카오 로그인 허용
                 .requestMatchers("/api/member/refresh").permitAll() // 토큰 재발급 허용
-                
-                // 이메일 인증 API 허용
+                  // 이메일 인증 API 허용
                 .requestMatchers("/api/auth/**").permitAll() // 이메일 인증 관련 허용
+                
+                // 비밀번호 재설정 API 허용 (인증 없이 접근 가능)
+                .requestMatchers("/api/password-reset/**").permitAll() // 비밀번호 찾기 관련 허용
                 
                 // 웹소켓 연결 허용
                 .requestMatchers("/ws/**").permitAll()

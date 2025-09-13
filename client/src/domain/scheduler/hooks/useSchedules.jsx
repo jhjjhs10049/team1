@@ -1,43 +1,63 @@
 import { useState, useEffect } from "react";
 import {
-    fetchSchedulesByDate,
-    createSchedule,
-    updateSchedule,
-    deleteSchedule,
+  fetchSchedulesByRange,
+  createSchedule,
+  updateSchedule,
+  deleteSchedule,
 } from "../api/scheduleApi";
 
 const useSchedules = (dateISO) => {
-    const [schedules, setSchedules] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+  const [schedules, setSchedules] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-    // ✅ 날짜별 일정 로드
-    useEffect(() => {
-        if (!dateISO) return;
-        setLoading(true);
-        fetchSchedulesByDate(dateISO)
-            .then((data) => setSchedules(data))
-            .catch((e) => setError(e))
-            .finally(() => setLoading(false));
-    }, [dateISO]);
+  // ✅ 날짜별 일정 로드 (해당 주의 모든 일정 가져오기)
+  useEffect(() => {
+    if (!dateISO) return;
 
-    // ✅ 추가/수정/삭제
-    const addSchedule = async (dto) => {
-        const created = await createSchedule(dto);
-        setSchedules((prev) => [...prev, created]);
-    };
+    // 해당 주의 시작과 끝 날짜 계산
+    const selectedDate = new Date(dateISO);
+    const startOfWeek = new Date(selectedDate);
+    startOfWeek.setDate(selectedDate.getDate() - selectedDate.getDay());
 
-    const saveSchedule = async (dto) => {
-        const updated = await updateSchedule(dto.id, dto);
-        setSchedules((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
-    };
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
 
-    const removeSchedule = async (id) => {
-        await deleteSchedule(id);
-        setSchedules((prev) => prev.filter((s) => s.id !== id));
-    };
+    const fromISO = startOfWeek.toISOString().split("T")[0];
+    const toISO = endOfWeek.toISOString().split("T")[0];
 
-    return { schedules, loading, error, addSchedule, saveSchedule, removeSchedule };
+    setLoading(true);
+    fetchSchedulesByRange(fromISO, toISO)
+      .then((data) => setSchedules(data))
+      .catch((e) => setError(e))
+      .finally(() => setLoading(false));
+  }, [dateISO]);
+
+  // ✅ 추가/수정/삭제
+  const addSchedule = async (dto) => {
+    const created = await createSchedule(dto);
+    setSchedules((prev) => [...prev, created]);
+  };
+  const saveSchedule = async (dto) => {
+    const updated = await updateSchedule(dto.scheduleNo, dto);
+    setSchedules((prev) =>
+      prev.map((s) => (s.scheduleNo === updated.scheduleNo ? updated : s))
+    );
+  };
+
+  const removeSchedule = async (scheduleNo) => {
+    await deleteSchedule(scheduleNo);
+    setSchedules((prev) => prev.filter((s) => s.scheduleNo !== scheduleNo));
+  };
+
+  return {
+    schedules,
+    loading,
+    error,
+    addSchedule,
+    saveSchedule,
+    removeSchedule,
+  };
 };
 
 export default useSchedules;

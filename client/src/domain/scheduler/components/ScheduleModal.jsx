@@ -1,18 +1,34 @@
 import React, { useState } from "react";
 import Modal from "./Modal";
 
-const getClock = (ts) => (ts?.split(" ")[1] ?? "").slice(0, 5); // "YYYY-MM-DD HH:MM" → "HH:MM"
+const getClock = (isoString) => {
+  if (!isoString) return "";
+  try {
+    // ISO 문자열을 Date 객체로 변환한 후 시간 추출
+    const date = new Date(isoString);
+    return date.toLocaleTimeString("en-US", {
+      hour12: false,
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch (error) {
+    console.error("시간 파싱 오류:", error);
+    return "";
+  }
+};
 
 const ScheduleModal = ({ item, onClose, onSave }) => {
+  console.log("ScheduleModal에 전달된 item:", item); // 디버깅용 로그 추가
+
   const [form, setForm] = useState({
-    id: item.id,
+    scheduleNo: item.scheduleNo || item.id, // 서버 필드명에 맞춰 수정
     date: item.date, // 유지
     title: item.title ?? "",
     startClock: getClock(item.startTime), // "HH:MM"
     endClock: getClock(item.endTime), // "HH:MM"
     gym: item.gym ?? "",
-    trainer: item.trainer ?? "",
-    color: item.color ?? "bg-blue-500",
+    trainer: item.trainerName ?? "", // trainerName 필드 사용
+    color: item.color ?? "bg-teal-500",
     completed: !!item.completed, // ✅ 완료 여부 토글
   });
 
@@ -20,8 +36,28 @@ const ScheduleModal = ({ item, onClose, onSave }) => {
     const { name, value, type, checked } = e.target;
     setForm((p) => ({ ...p, [name]: type === "checkbox" ? checked : value }));
   };
-
   const buildPayload = (overrides = {}) => {
+    const completed = overrides.completed ?? form.completed;
+
+    // 완료 상태만 변경하는 경우, 기존 데이터 유지
+    if ("completed" in overrides && Object.keys(overrides).length === 1) {
+      const payload = {
+        scheduleNo: form.scheduleNo,
+        date: item.date, // 원본 데이터 유지
+        title: item.title, // 원본 데이터 유지
+        startTime: item.startTime, // 원본 시간 유지
+        endTime: item.endTime, // 원본 시간 유지
+        gym: item.gym, // 원본 데이터 유지
+        trainerName: item.trainerName || null, // 원본 데이터 유지
+        color: item.color, // 원본 데이터 유지
+        completed, // 완료 상태만 변경
+      };
+
+      console.log("완료 상태 변경용 payload (기존 시간 유지):", payload);
+      return payload;
+    }
+
+    // 일반 수정의 경우 기존 로직 유지
     const startOK = /^\d{2}:\d{2}$/.test(form.startClock);
     const endOK = /^\d{2}:\d{2}$/.test(form.endClock);
     if (!form.title.trim()) {
@@ -32,19 +68,25 @@ const ScheduleModal = ({ item, onClose, onSave }) => {
       alert("시간 형식이 올바르지 않습니다. (HH:MM)");
       return null;
     }
-    const completed = overrides.completed ?? form.completed;
 
-    return {
-      id: form.id,
+    // ISO 형식으로 시간 변환
+    const startDateTime = new Date(`${form.date}T${form.startClock}:00`);
+    const endDateTime = new Date(`${form.date}T${form.endClock}:00`);
+
+    const payload = {
+      scheduleNo: form.scheduleNo, // id -> scheduleNo로 변경
       date: form.date,
       title: form.title,
-      startTime: `${form.date} ${form.startClock}`,
-      endTime: `${form.date} ${form.endClock}`,
+      startTime: startDateTime.toISOString(),
+      endTime: endDateTime.toISOString(),
       gym: form.gym,
-      trainer: form.trainer || null,
+      trainerName: form.trainer || null, // trainer -> trainerName으로 변경
       color: form.color,
       completed, // ✅ 완료 상태 포함
     };
+
+    console.log("일반 수정용 buildPayload 결과:", payload);
+    return payload;
   };
 
   const handleSave = () => {
@@ -160,13 +202,12 @@ const ScheduleModal = ({ item, onClose, onSave }) => {
 
           {/* 우측: 일반 저장/닫기 */}
           <div className="flex gap-3">
-            {" "}
             <button
               className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors font-medium"
               onClick={onClose}
             >
               닫기
-            </button>{" "}
+            </button>
             <button
               className="px-4 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-600 transition-colors font-medium"
               onClick={handleSave}

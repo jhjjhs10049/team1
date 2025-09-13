@@ -79,11 +79,44 @@ public class EmailService {
             );
 
             javaMailSender.send(message);
-            log.info("✅ 환영 이메일 전송 완료 - 수신자: {}", email);
-
-        } catch (Exception e) {
+            log.info("✅ 환영 이메일 전송 완료 - 수신자: {}", email);        } catch (Exception e) {
             log.error("❌ 환영 이메일 전송 실패 - 수신자: {}, 오류: {}", email, e.getMessage(), e);
             // 환영 이메일은 실패해도 회원가입 프로세스에는 영향을 주지 않음
+        }
+    }
+
+    /**
+     * 비밀번호 변경 완료 알림 이메일 전송
+     */
+    public void sendPasswordResetConfirmEmail(String email, String nickname) {
+        try {
+            log.info("비밀번호 변경 완료 이메일 전송 시작 - 수신자: {}, 닉네임: {}", email, nickname);
+
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(email);
+            message.setSubject("🔐 FitConnect 비밀번호 변경 완료");
+            message.setText(
+                    nickname + "님, 비밀번호가 성공적으로 변경되었습니다.\n\n" +
+                    "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
+                    "🔐 비밀번호 변경 완료\n" +
+                    "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n" +
+                    "변경 일시: " + java.time.LocalDateTime.now().format(
+                        java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                    ) + "\n\n" +
+                    "⚠️ 만약 본인이 변경하지 않았다면 즉시 고객센터로 연락해주세요.\n" +
+                    "⚠️ 계정 보안을 위해 정기적으로 비밀번호를 변경해주세요.\n\n" +
+                    "📞 고객센터: 1588-xxxx\n\n" +
+                    "감사합니다!\n" +
+                    "FitConnect 팀"
+            );
+
+            javaMailSender.send(message);
+            log.info("✅ 비밀번호 변경 완료 이메일 전송 완료 - 수신자: {}", email);
+
+        } catch (Exception e) {
+            log.error("❌ 비밀번호 변경 완료 이메일 전송 실패 - 수신자: {}, 오류: {}", email, e.getMessage(), e);
+            // 비밀번호 변경 완료 이메일은 실패해도 주요 기능에는 영향을 주지 않음
         }
     }
 }

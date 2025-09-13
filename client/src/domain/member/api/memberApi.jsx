@@ -121,3 +121,33 @@ export const checkVerificationStatus = async (email) => {
   );
   return res.data;
 };
+
+// 비밀번호 재설정 관련 API
+export const sendPasswordResetCode = async (email) => {
+  const res = await axios.post(
+    `${API_SERVER_HOST}/api/password-reset/send-code?email=${encodeURIComponent(
+      email
+    )}`
+  );
+  return res.data;
+};
+
+export const verifyPasswordResetCode = async (email, code) => {
+  const res = await axios.post(
+    `${API_SERVER_HOST}/api/password-reset/verify-code?email=${encodeURIComponent(
+      email
+    )}&code=${encodeURIComponent(code)}`
+  );
+  return res.data;
+};
+
+export const resetPassword = async (email, code, newPassword) => {
+  const res = await axios.post(
+    `${API_SERVER_HOST}/api/password-reset/reset-password?email=${encodeURIComponent(
+      email
+    )}&code=${encodeURIComponent(code)}&newPassword=${encodeURIComponent(
+      newPassword
+    )}`
+  );
+  return res.data;
+};

@@ -4,6 +4,7 @@ import { loginPostAsync } from "../slices/loginSlice";
 import useCustomLogin from "../hooks/useCustomLogin";
 import KakaoLoginComponent from "./KakaoLoginComponent";
 import BannedMemberModal from "./BannedMemberModal";
+import PasswordResetModal from "./PasswordResetModal";
 
 const initState = {
   email: "",
@@ -14,6 +15,7 @@ const LoginComponent = () => {
   const [loginParam, setLoginParam] = useState({ ...initState });
   const [bannedModalOpen, setBannedModalOpen] = useState(false);
   const [banInfo, setBanInfo] = useState(null);
+  const [passwordResetModalOpen, setPasswordResetModalOpen] = useState(false);
   const { moveToPath } = useCustomLogin();
 
   // Redux 상태에서 ban 정보 가져오기
@@ -89,7 +91,6 @@ const LoginComponent = () => {
         <h1 className="text-3xl font-bold text-gray-800 mb-2">로그인</h1>
         <p className="text-gray-600">계정에 로그인하여 서비스를 이용하세요</p>
       </div>
-
       <div className="space-y-6">
         <div>
           <label className="block text-sm font-bold text-gray-800 mb-2">
@@ -135,24 +136,32 @@ const LoginComponent = () => {
             회원가입 하기
           </button>
         </div>
+        {/* 비밀번호 찾기 버튼 */}
+        <div className="text-center">
+          <button
+            className="text-sm text-gray-500 hover:text-gray-700 underline"
+            onClick={() => setPasswordResetModalOpen(true)}
+          >
+            비밀번호를 잊으셨나요?
+          </button>
+        </div>
       </div>
-
       <div className="mt-8">
         <KakaoLoginComponent />
       </div>
-
       {/* 정지된 회원 모달 */}
       <BannedMemberModal
         isOpen={bannedModalOpen}
         onClose={() => setBannedModalOpen(false)}
         banInfo={banInfo}
       />
+      {/* 비밀번호 재설정 모달 */}
+      <PasswordResetModal
+        isOpen={passwordResetModalOpen}
+        onClose={() => setPasswordResetModalOpen(false)}
+      />
     </div>
   );
 };
 
 export default LoginComponent;
-
-
-
-

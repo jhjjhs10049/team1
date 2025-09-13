@@ -8,7 +8,7 @@ const ConfirmModal = ({ message, onClose, onConfirm }) => {
           <span className="text-xl">⚠️</span>
           확인
         </h3>
-        <p className="text-gray-700 mb-8 leading-relaxed">{message}</p>{" "}
+        <p className="text-gray-700 mb-8 leading-relaxed">{message}</p>
         <div className="flex justify-end gap-3">
           <button
             type="button"

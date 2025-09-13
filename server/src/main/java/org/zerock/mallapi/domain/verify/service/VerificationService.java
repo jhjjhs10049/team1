@@ -7,6 +7,8 @@ public interface VerificationService {
     public boolean verifyCode(String email, String code);
 
     public boolean isVerified(String email);
+    
+    public void deleteVerificationCode(String email);
 
 }
 

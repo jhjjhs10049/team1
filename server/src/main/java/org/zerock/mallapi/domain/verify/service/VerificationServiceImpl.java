@@ -46,10 +46,17 @@ public class VerificationServiceImpl implements VerificationService{
             return true;
         }
         return false;
-    }
-
-    @Override
+    }    @Override
     public boolean isVerified(String email) {
         return "true".equals(redisTemplate.opsForValue().get(VERIFIED_PREFIX + email));
+    }
+    
+    @Override
+    public void deleteVerificationCode(String email) {
+        // 인증번호 삭제
+        redisTemplate.delete("verify:" + email);
+        // 인증 완료 상태도 삭제
+        redisTemplate.delete(VERIFIED_PREFIX + email);
+        log.info("인증번호 및 인증 상태 삭제 완료 - 이메일: {}", email);
     }
 }

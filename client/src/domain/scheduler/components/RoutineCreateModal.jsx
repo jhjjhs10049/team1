@@ -1,38 +1,40 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import Modal from "./Modal";
 
 const COLOR_OPTIONS = [
-  { label: "Sky", value: "bg-sky-500" },
-  { label: "Orange", value: "bg-orange-500" },
-  { label: "Blue", value: "bg-blue-500" },
-  { label: "Teal", value: "bg-teal-500" },
-  { label: "Purple", value: "bg-purple-500" },
+  { label: "파랑", value: "bg-blue-500" },
+  { label: "초록", value: "bg-green-500" },
+  { label: "빨강", value: "bg-red-500" },
+  { label: "오렌지", value: "bg-orange-500" },
+  { label: "보라", value: "bg-purple-500" },
+  { label: "틸", value: "bg-teal-500" },
 ];
 
-const RoutineEditModal = ({ routine, onSave, onDelete, onClose }) => {
+const RoutineCreateModal = ({ onClose, onCreate }) => {
   const [form, setForm] = useState({
-    routineNo: routine.routineNo,
-    name: routine.name || "",
-    description: routine.description || "",
-    exerciseList: routine.exerciseList || "",
+    name: "",
+    description: "",
+    exerciseList: "",
   });
-  const handleSave = () => {
+  const handleCreate = () => {
     if (!form.name.trim()) return alert("루틴 이름을 입력하세요.");
     if (!form.exerciseList.trim()) return alert("운동 항목을 입력하세요.");
 
-    onSave?.(form.routineNo, {
+    const routine = {
       name: form.name.trim(),
       description: form.description.trim() || `${form.name.trim()} 루틴입니다.`,
       exerciseList: form.exerciseList.trim(),
-    });
+    };
+
+    onCreate?.(routine);
     onClose?.();
   };
+
   return (
     <Modal onClose={onClose}>
       <div className="p-6">
         <h3 className="text-xl font-semibold mb-6 text-gray-800 flex items-center gap-3">
-          <span className="text-xl">🏋️</span>
-          루틴 수정
+          <span className="text-xl">➕</span>새 루틴 추가
         </h3>
 
         <div className="space-y-4">
@@ -45,7 +47,7 @@ const RoutineEditModal = ({ routine, onSave, onDelete, onClose }) => {
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
               value={form.name}
               onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-              placeholder="예) 상체 루틴"
+              placeholder="예) 내 상체 루틴"
             />
           </div>
           <div>
@@ -71,42 +73,28 @@ const RoutineEditModal = ({ routine, onSave, onDelete, onClose }) => {
               onChange={(e) =>
                 setForm((p) => ({ ...p, exerciseList: e.target.value }))
               }
-              placeholder={"벤치프레스 4x10\n랫풀다운 4x12\n숄더프레스 3x12"}
+              placeholder="벤치프레스 4세트 x 8-12회&#10;랫풀다운 4세트 x 10-12회&#10;숄더프레스 3세트 x 10-12회"
             />
           </div>
         </div>
 
-        <div className="flex justify-between items-center mt-8">
-          {" "}
+        <div className="flex justify-end gap-3 mt-8">
           <button
-            className="px-4 py-2 border border-red-300 text-red-600 rounded-md hover:bg-red-50 transition-colors font-medium"
-            onClick={() => {
-              if (confirm("이 루틴을 삭제하시겠습니까?")) {
-                onDelete?.(form.routineNo);
-                onClose?.();
-              }
-            }}
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors font-medium"
+            onClick={onClose}
           >
-            삭제
+            취소
           </button>
-          <div className="flex gap-3">
-            <button
-              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors font-medium"
-              onClick={onClose}
-            >
-              취소
-            </button>
-            <button
-              className="px-4 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-600 transition-colors font-medium"
-              onClick={handleSave}
-            >
-              저장
-            </button>
-          </div>
+          <button
+            className="px-4 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-600 transition-colors font-medium"
+            onClick={handleCreate}
+          >
+            추가
+          </button>
         </div>
       </div>
     </Modal>
   );
 };
 
-export default RoutineEditModal;
+export default RoutineCreateModal;
