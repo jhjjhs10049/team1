@@ -95,6 +95,12 @@ public class CustomSecurityConfig {
                 .requestMatchers(GET, "/api/trainers/*").permitAll() // 트레이너 상세 조회
                 .requestMatchers(GET, "/api/trainers/*/reviews").permitAll() // 리뷰 조회는 공개
                 .requestMatchers("/api/trainers/*/reviews").authenticated() // 리뷰 작성/삭제는 인증 필요
+                
+                // Fitness Tips API - 랜덤 조회는 공개, 관리는 관리자만
+                .requestMatchers(GET, "/api/fitness-tips/random").permitAll() // 랜덤 팁 조회
+                .requestMatchers(GET, "/api/fitness-tips/active").permitAll() // 활성화된 팁 목록 조회
+                .requestMatchers("/api/fitness-tips/admin/**").hasAnyRole("ADMIN", "MANAGER") // 관리자 기능
+                
                   // Schedule API - 모든 기능 인증 필요 (개인 일정)
                 .requestMatchers("/api/schedules/**").authenticated()
                 .requestMatchers("/api/routines/**").authenticated() 

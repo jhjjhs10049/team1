@@ -50,17 +50,27 @@ export const increaseViewCount = async (boardId) => {
 };
 
 // 생성 (로그인 필요)
-export const createBoard = async ({ title, content, images }) => {
-  const res = await jwtAxios.post(host, { title, content, images });
+export const createBoard = async ({ title, content, images, locationLat, locationLng, locationAddress }) => {
+  const res = await jwtAxios.post(host, {
+    title,
+    content,
+    images,
+    locationLat,
+    locationLng,
+    locationAddress
+  });
   return res.data; // 성공 시 201 Created
 };
 
 // 수정 (로그인 필요)
-export const updateBoard = async ({ boardId, title, content, images }) => {
+export const updateBoard = async ({ boardId, title, content, images, locationLat, locationLng, locationAddress }) => {
   const res = await jwtAxios.put(`${host}/${boardId}`, {
     title,
     content,
     images,
+    locationLat,
+    locationLng,
+    locationAddress
   });
   return res.data; // 성공 시 204 No Content
 };

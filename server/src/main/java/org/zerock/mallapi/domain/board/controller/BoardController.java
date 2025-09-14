@@ -54,11 +54,14 @@ public class BoardController {        private final BoardService boardService;
                 List<BoardImage> images = boardService.getImages(boardId); // ord ASC
                 List<Reply> replies = replyService.listAll(boardId); // createdAt ASC
 
-                return ResponseEntity.ok(toBoardDetailDto(b, images, replies));
+                BoardDetailDto dto = toBoardDetailDto(b, images, replies);
+                
+                return ResponseEntity.ok(dto);
         }
 
         // 생성요청 바디
-        public record CreateBoardRequest(String title, String content, List<String> images) {
+        public record CreateBoardRequest(String title, String content, List<String> images, 
+                                       Double locationLat, Double locationLng, String locationAddress) {
         }        
         @PreAuthorize("hasAnyRole('USER','MANAGER','ADMIN')")
         @PostMapping
@@ -77,13 +80,17 @@ public class BoardController {        private final BoardService boardService;
                                 writerId,
                                 req.title(),
                                 req.content(),
-                                req.images() == null ? List.of() : req.images());
+                                req.images() == null ? List.of() : req.images(),
+                                req.locationLat(),
+                                req.locationLng(),
+                                req.locationAddress());
                 
                 log.info("=== 게시글 생성 완료, ID: {} ===", id);
                 return ResponseEntity.created(URI.create("/api/boards/" + id)).build();
         }
 
-        public record UpdateBoardRequest(String title, String content, List<String> images) {
+        public record UpdateBoardRequest(String title, String content, List<String> images,
+                                        Double locationLat, Double locationLng, String locationAddress) {
         }        
           @PreAuthorize("hasAnyRole('USER','MANAGER','ADMIN')")
         @PutMapping("/{boardId}")
@@ -109,7 +116,10 @@ public class BoardController {        private final BoardService boardService;
                                         req.title(),
                                         req.content(),
                                         req.images() == null ? List.of() : req.images(),
-                                        currentUserId);
+                                        currentUserId,
+                                        req.locationLat(),
+                                        req.locationLng(),
+                                        req.locationAddress());
                         
                         log.info("=== 게시글 수정 완료 ===");
                         return ResponseEntity.noContent().build();
@@ -153,7 +163,10 @@ public class BoardController {        private final BoardService boardService;
                         b.getPostType(), // postType으로 변경
                         imageDtos, // images
                         b.getCreatedAt(), // regDate
-                        b.getUpdatedAt() // modDate
+                        b.getUpdatedAt(), // modDate
+                        b.getLocationLat(), // locationLat
+                        b.getLocationLng(), // locationLng
+                        b.getLocationAddress() // locationAddress
                 );
         }
 
@@ -184,7 +197,11 @@ public class BoardController {        private final BoardService boardService;
                                 imageDtos,
                                 replyDtos,
                                 b.getCreatedAt(),
-                                b.getUpdatedAt());
+                                b.getUpdatedAt(),
+                                b.getLocationLat(), // locationLat
+                                b.getLocationLng(), // locationLng
+                                b.getLocationAddress() // locationAddress
+                );
         }        
         
         // 조회수 증가

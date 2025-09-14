@@ -60,6 +60,9 @@ const useMultChatWebSocket = (roomNo, isInRoom = false) => {
           console.warn("⚠️ 잘못된 알림 형식:", notification);
           return;
         }
+
+        console.log("🔍 [DEBUG] 알림 처리 시작 - 타입:", notification.type);
+
         switch (notification.type) {
           case "USER_LIST_UPDATE":
             // 서버에서 보내는 실제 참가자 목록 업데이트 (상세 정보 포함)
@@ -180,17 +183,26 @@ const useMultChatWebSocket = (roomNo, isInRoom = false) => {
             break;
 
           case "USER_LEFT":
+            console.log("� [DEBUG] USER_LEFT 이벤트 수신 시작");
+            console.log("�👋 사용자 나가기 알림 수신:", notification);
+            console.log("🔍 [DEBUG] 현재 participants 배열 길이:", participants.length);
+            console.log("🔍 [DEBUG] 현재 participants:", participants);
+
             setParticipants((prev) => {
+              console.log("🔍 [DEBUG] setParticipants 실행 - 이전 상태:", prev);
               const filtered = prev.filter(
-                (p) => p.nickname !== notification.nickname
+                (p) => p.nickname !== notification.nickname &&
+                  p.memberNo !== notification.memberNo
               );
               console.log(`👋 ${notification.nickname}님이 퇴장했습니다.`);
+              console.log("👥 나가기 후 남은 참가자:", filtered);
+              console.log("🔍 [DEBUG] 필터링 결과 - 이전:", prev.length, "→ 이후:", filtered.length);
               return filtered;
             });
 
             // 채팅방 정보 업데이트
-            setRoomInfo((prev) =>
-              prev
+            setRoomInfo((prev) => {
+              const updated = prev
                 ? {
                   ...prev,
                   currentParticipants: Math.max(
@@ -198,8 +210,10 @@ const useMultChatWebSocket = (roomNo, isInRoom = false) => {
                     0
                   ),
                 }
-                : null
-            );
+                : null;
+              console.log("🏠 채팅방 정보 업데이트 (USER_LEFT):", updated);
+              return updated;
+            });
             break;
 
           case "PARTICIPANT_LIST_UPDATE":

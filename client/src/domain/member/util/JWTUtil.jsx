@@ -124,27 +124,42 @@ const requestFail = (err) => {
 
 //before return response
 const beforeRes = async (res) => {
-  const data = res.data;
-  if (data && data.error === "ERROR_ACCESS_TOKEN") {
-    const memberCookieValue = getCookie("member");
+  // ❌ 기존: 잘못된 에러 코드 체크
+  // if (data && data.error === "ERROR_ACCESS_TOKEN") {
 
+  // ✅ 수정: 실제로는 401 상태 코드나 JWT 관련 에러를 체크해야 함
+  // 401 Unauthorized 응답이 오면 토큰 갱신을 시도
+  return res;
+};
+
+//fail response
+const responseFail = async (err) => {
+  console.error("🚨 JWT 응답 실패:", {
+    url: err.config?.url,
+    method: err.config?.method,
+    status: err.response?.status,
+    statusText: err.response?.statusText,
+    data: err.response?.data,
+  });
+
+  // 🔄 401 에러 시 토큰 갱신 시도 (refresh 엔드포인트 제외)
+  if (err.response?.status === 401 && !err.config?.url?.includes("/api/member/refresh")) {
+    console.log("🔄 401 에러 감지 - 토큰 갱신 시도 중...");
+
+    const memberCookieValue = getCookie("member");
     if (!memberCookieValue) {
       console.error("JWT 응답 인터셉터: 쿠키에 member 정보가 없음");
-      return Promise.reject({
-        response: { data: { error: "REQUIRE_LOGIN" } },
-      });
+      return Promise.reject(err);
     }
 
-    // memberInfo가 문자열인지 객체인지 확인
+    // memberInfo 파싱
     let parsedMemberInfo;
     if (typeof memberCookieValue === "string") {
       try {
         parsedMemberInfo = JSON.parse(memberCookieValue);
       } catch (e) {
         console.error("JWT 응답 인터셉터: memberInfo 파싱 실패:", e);
-        return Promise.reject({
-          response: { data: { error: "INVALID_MEMBER_INFO" } },
-        });
+        return Promise.reject(err);
       }
     } else {
       parsedMemberInfo = memberCookieValue;
@@ -152,12 +167,11 @@ const beforeRes = async (res) => {
 
     if (!parsedMemberInfo.accessToken || !parsedMemberInfo.refreshToken) {
       console.error("JWT 응답 인터셉터: 토큰이 없음");
-      return Promise.reject({
-        response: { data: { error: "NO_TOKENS" } },
-      });
+      return Promise.reject(err);
     }
+
     try {
-      // accessToken와 refreshToken을 서버로 전송해서 새로운 토큰을 받아온다.
+      // 토큰 갱신 시도
       console.log("🔄 리프레시 토큰으로 새 액세스 토큰 요청 중...");
       const result = await refreshJWT(
         parsedMemberInfo.accessToken,
@@ -170,33 +184,26 @@ const beforeRes = async (res) => {
 
       setCookie("member", JSON.stringify(parsedMemberInfo), 1);
 
-      // 원래의 호출을 새로운 토큰으로 재시도
-      const originalResult = res.config;
-      originalResult.headers.Authorization = `Bearer ${result.accessToken}`;
+      // 원래 요청을 새로운 토큰으로 재시도
+      const originalRequest = err.config;
+      originalRequest.headers.Authorization = `Bearer ${result.accessToken}`;
 
-      return await axios(originalResult);
+      console.log("🔄 원래 요청 재시도:", originalRequest.url);
+      return await axios(originalRequest);
+
     } catch (refreshError) {
       console.error("❌ 리프레시 토큰 갱신 실패:", refreshError);
-      console.log("📊 리프레시 에러 상세:", {
-        status: refreshError.response?.status,
-        error: refreshError.response?.data?.error,
-        url: refreshError.config?.url,
-      }); // 🔥 리프레시 토큰도 만료된 경우에만 로그아웃 처리
+
+      // 리프레시 토큰도 만료된 경우 강제 로그아웃
       if (
         refreshError.response?.status === 401 ||
         refreshError.response?.data?.error === "REFRESH_TOKEN_EXPIRED"
       ) {
-        console.log(
-          "🚨 beforeRes에서 리프레시 토큰 만료 감지 - 직접 모달 표시"
-        );
-        // 직접 모달 표시 (페이지 이동 시에도 동작)
+        console.log("🚨 responseFail에서 리프레시 토큰 만료 감지");
         showLogoutAlert(
           "리프레시 토큰이 만료되었습니다.\n\n다시 로그인해 주세요.",
           () => {
-            // 쿠키 삭제
-            document.cookie =
-              "member=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            // 로그인 페이지로 이동
+            document.cookie = "member=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
             window.location.href = "/member/login";
           },
           "TOKEN_EXPIRED"
@@ -207,39 +214,20 @@ const beforeRes = async (res) => {
     }
   }
 
-  return res;
-};
-
-//fail response
-const responseFail = (err) => {
-  console.error("🚨 JWT 응답 실패:", {
-    url: err.config?.url,
-    method: err.config?.method,
-    status: err.response?.status,
-    statusText: err.response?.statusText,
-    data: err.response?.data,
-  });
-
-  // 중요한 에러만 로깅
-  if (err.response?.status === 401) {
-    console.error("인증 실패:", err.config?.url); // 리프레시 토큰 관련 401 에러인 경우 강제 로그아웃 처리
-    if (
-      err.response?.data?.error === "REFRESH_TOKEN_EXPIRED" ||
-      err.config?.url?.includes("/api/member/refresh")
-    ) {
-      console.log("🚨 responseFail에서 리프레시 토큰 만료 감지");
-      showLogoutAlert(
-        "리프레시 토큰이 만료되었습니다.\n\n다시 로그인해 주세요.",
-        () => {
-          // 쿠키 삭제
-          document.cookie =
-            "member=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-          // 로그인 페이지로 이동
-          window.location.href = "/member/login";
-        },
-        "TOKEN_EXPIRED"
-      );
-    }
+  // 리프레시 토큰 관련 401 에러인 경우 강제 로그아웃 처리
+  if (err.response?.status === 401 && (
+    err.response?.data?.error === "REFRESH_TOKEN_EXPIRED" ||
+    err.config?.url?.includes("/api/member/refresh")
+  )) {
+    console.log("🚨 responseFail에서 리프레시 토큰 만료 감지");
+    showLogoutAlert(
+      "리프레시 토큰이 만료되었습니다.\n\n다시 로그인해 주세요.",
+      () => {
+        document.cookie = "member=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        window.location.href = "/member/login";
+      },
+      "TOKEN_EXPIRED"
+    );
   } else if (err.response?.status >= 500) {
     console.error("서버 에러:", err.response?.status, err.config?.url);
   }

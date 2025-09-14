@@ -37,6 +37,7 @@ public class MultChatWebSocketController {
     private final MultChatUserService userService;
     private final MultChatMessageHandler messageHandler;
     private final MultChatNotificationService notificationService;
+    private final MultChatRoomService chatRoomService;
 
     /**
      * 단체채팅 메시지 전송 처리
@@ -132,6 +133,8 @@ public class MultChatWebSocketController {
                          @Payload MultChatMessageDTO message,
                          SimpMessageHeaderAccessor headerAccessor) {
         
+        log.info("🔍 [DEBUG] leaveRoom 메서드 시작 - 방번호: {}, 메시지타입: {}", roomNo, message.getMessageType());
+        
         // 실제 나가기 버튼을 누른 경우에만 처리
         if ("REAL_LEAVE".equals(message.getMessageType())) {
             log.info("✅ 실제 나가기 버튼 클릭 - 방번호: {}, 사용자: {}", roomNo, message.getSenderNickname());
@@ -139,6 +142,8 @@ public class MultChatWebSocketController {
             try {
                 // 사용자 정보 추출
                 MemberDTO memberDTO = userService.extractUserInfo(headerAccessor);
+                log.info("🔍 [DEBUG] 추출된 사용자 정보: {}", memberDTO);
+                
                 if (!userService.isUserAuthenticated(memberDTO)) {
                     log.error("인증되지 않은 사용자의 나가기 시도");
                     return;
@@ -146,9 +151,11 @@ public class MultChatWebSocketController {
 
                 // 최종 닉네임 결정
                 String finalNickname = userService.determineFinalNickname(memberDTO, message.getSenderNickname());
+                log.info("🔍 [DEBUG] 최종 닉네임: {}", finalNickname);
                 
                 // 웹소켓 메모리에서 사용자 제거
                 boolean removed = roomManager.removeUserFromRoom(roomNo, finalNickname);
+                log.info("🔍 [DEBUG] removeUserFromRoom 결과: {}", removed);
                 
                 if (removed) {
                     log.info("사용자 {}님이 채팅방 {}에서 나감 - 현재 온라인: {}명", 
@@ -159,17 +166,62 @@ public class MultChatWebSocketController {
                         roomNo, finalNickname + "님이 나가셨습니다.", "LEAVE", finalNickname
                     );
                     notificationService.broadcastMessage(roomNo, leaveMessage);
+                    log.info("🔍 [DEBUG] 나가기 시스템 메시지 브로드캐스트 완료");
+                    
+                    // 🔄 개별 사용자 나가기 알림 추가 전송
+                    log.info("🔍 [DEBUG] sendUserLeftNotification 호출 시작");
+                    notificationService.sendUserLeftNotification(roomNo, finalNickname, memberDTO.getMemberNo());
+                    log.info("🔍 [DEBUG] sendUserLeftNotification 호출 완료");
                     
                     // 사용자 목록 업데이트 알림 전송
                     if (roomManager.getOnlineUserCount(roomNo) > 0) {
                         List<String> onlineUsers = List.copyOf(roomManager.getOnlineUsers(roomNo));
                         List<Map<String, Object>> participantList = roomManager.getParticipantList(roomNo);
                         notificationService.sendUserListUpdate(roomNo, onlineUsers, participantList);
+                        log.info("🔍 [DEBUG] 사용자 목록 업데이트 알림 전송 완료");
                     }
+                    
+                    // 🆕 글로벌 채팅방 리스트 업데이트 알림 전송 (나가기로 인한 참가자 수 변경)
+                    log.info("🔍 [DEBUG] 글로벌 채팅방 리스트 업데이트 알림 전송 시작");
+                    notificationService.sendParticipantCountUpdate(roomNo, roomManager.getOnlineUserCount(roomNo));
+                    log.info("🔍 [DEBUG] 글로벌 채팅방 리스트 업데이트 알림 전송 완료");
+                    
+                    // 🏠 방장 나가기 처리: 방장이 나가면 방을 비활성화
+                    try {
+                        boolean isRoomOwner = chatRoomService.isRoomOwner(roomNo, memberDTO.getMemberNo());
+                        if (isRoomOwner) {
+                            log.info("👑 방장 {}님이 채팅방 {}에서 나감 - 방 비활성화 처리 시작", finalNickname, roomNo);
+                            
+                            // 방 비활성화
+                            chatRoomService.deactivateRoom(roomNo);
+                            
+                            // 방 삭제 시스템 메시지 브로드캐스트
+                            MultChatMessageDTO roomDeleteMessage = messageHandler.handleSystemMessage(
+                                roomNo, "방장이 나가서 채팅방이 삭제되었습니다.", "ROOM_DELETED", finalNickname
+                            );
+                            notificationService.broadcastMessage(roomNo, roomDeleteMessage);
+                            
+                            // 방 삭제 알림을 글로벌로 전송 (채팅방 리스트에서 제거하기 위해)
+                            Map<String, Object> roomDeleteData = Map.of(
+                                "roomNo", roomNo,
+                                "roomName", "삭제된 방",
+                                "reason", "방장 나가기",
+                                "deletedAt", System.currentTimeMillis()
+                            );
+                            notificationService.sendRoomListUpdate("ROOM_DELETED", roomNo, roomDeleteData);
+                            log.info("📤 방 삭제 글로벌 알림 전송 완료 - 방번호: {}", roomNo);
+                            
+                            log.info("👑 방장 나가기로 인한 채팅방 {} 비활성화 완료", roomNo);
+                        }
+                    } catch (Exception roomDeleteError) {
+                        log.error("방장 나가기 처리 중 오류 발생", roomDeleteError);
+                    }
+                } else {
+                    log.warn("🔍 [DEBUG] 사용자 제거 실패 - 사용자가 이미 제거되었거나 존재하지 않음");
                 }
 
             } catch (Exception e) {
-                log.error("채팅방 나가기 처리 중 오류 발생", e);
+                log.error("🔍 [DEBUG] 채팅방 나가기 처리 중 오류 발생", e);
             }
         } else {
             log.info("🚫 페이지 이동/새로고침으로 인한 임시 나가기 요청 무시 - 방번호: {}, 사용자: {} (채팅방 소속 유지)", 

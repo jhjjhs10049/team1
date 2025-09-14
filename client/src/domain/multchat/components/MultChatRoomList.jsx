@@ -37,6 +37,25 @@ const MultChatRoomList = () => {
 
   // 실시간 채팅방 정보 상태
   const [realTimeRoomInfo, setRealTimeRoomInfo] = useState(new Map());
+
+  // 🔧 웹소켓 연결 확인 및 재연결 함수
+  const checkAndReconnectWebSocket = useCallback(async () => {
+    console.log("🔍 웹소켓 연결 상태 체크...");
+    console.log("Hook 상태:", isWebSocketConnected);
+    console.log("Service 상태:", websocketService.isWebSocketConnected());
+
+    if (!isWebSocketConnected || !websocketService.isWebSocketConnected()) {
+      console.log("🔄 웹소켓 재연결 시도...");
+      try {
+        await websocketService.connect();
+        console.log("✅ 웹소켓 재연결 성공");
+      } catch (error) {
+        console.error("❌ 웹소켓 재연결 실패:", error);
+      }
+    } else {
+      console.log("✅ 웹소켓 정상 연결됨");
+    }
+  }, [isWebSocketConnected]);
   // 웹소켓 실시간 업데이트 콜백 등록
   useEffect(() => {
     if (!registerRoomUpdateCallback) return;
@@ -86,10 +105,21 @@ const MultChatRoomList = () => {
 
   // 글로벌 채팅방 리스트 업데이트 구독
   useEffect(() => {
-    if (!isWebSocketConnected) return;
+    console.log("🔍 [DEBUG] 웹소켓 연결 상태:", isWebSocketConnected);
+
+    if (!isWebSocketConnected) {
+      console.log("⚠️ 웹소켓이 연결되지 않아 글로벌 구독을 시작할 수 없습니다.");
+      return;
+    }
 
     const globalUpdateDestination = WEBSOCKET_DESTINATIONS.TOPIC.MULT_CHAT_ROOMS_UPDATES;
     console.log("📡 글로벌 채팅방 리스트 업데이트 구독 시작:", globalUpdateDestination);
+
+    // 웹소켓 서비스 연결 상태 재확인
+    if (!websocketService.isWebSocketConnected()) {
+      console.error("❌ websocketService가 연결되지 않음!");
+      return;
+    }
 
     const subscription = websocketService.subscribe(
       globalUpdateDestination,
@@ -107,7 +137,35 @@ const MultChatRoomList = () => {
         if (type === "PARTICIPANTS_UPDATED" && roomData?.currentParticipants !== undefined) {
           console.log(`📊 채팅방 ${roomNo} 참가자 수 업데이트: ${roomData.currentParticipants}명`);
 
-          // 실시간 정보 업데이트
+          // 🔥 참가자 수가 0이 된 경우 채팅방을 목록에서 제거
+          if (roomData.currentParticipants === 0) {
+            console.log(`🗑️ 참가자 수 0으로 인한 채팅방 ${roomNo} 자동 제거`);
+
+            // 삭제된 채팅방을 목록에서 제거
+            setChatRooms((prev) => {
+              const filtered = prev.filter((room) => room.no !== roomNo);
+              console.log(`🗑️ 공개 채팅방 목록에서 자동 제거 - 이전: ${prev.length}개, 이후: ${filtered.length}개`);
+              return filtered;
+            });
+
+            setMyRooms((prev) => {
+              const filtered = prev.filter((room) => room.no !== roomNo);
+              console.log(`🗑️ 내 채팅방 목록에서 자동 제거 - 이전: ${prev.length}개, 이후: ${filtered.length}개`);
+              return filtered;
+            });
+
+            // 실시간 정보에서도 제거
+            setRealTimeRoomInfo((prev) => {
+              const newMap = new Map(prev);
+              newMap.delete(roomNo);
+              console.log(`🗑️ 실시간 정보에서 자동 제거: ${roomNo}`);
+              return newMap;
+            });
+
+            return; // 더 이상 처리하지 않음
+          }
+
+          // 실시간 정보 업데이트 (참가자 수가 0이 아닌 경우)
           setRealTimeRoomInfo((prev) => {
             const newMap = new Map(prev);
             newMap.set(roomNo, {
@@ -141,8 +199,49 @@ const MultChatRoomList = () => {
             setChatRooms((prev) => [roomData, ...prev]);
           }
         }
+
+        // 채팅방 삭제 처리 (방장이 나간 경우)
+        else if (type === "ROOM_DELETED") {
+          console.log(`🗑️ 채팅방 삭제됨: ${roomNo} (방장이 나감)`);
+          console.log("🔍 [DEBUG] ROOM_DELETED 이벤트 상세:", { type, roomNo, roomData, notification });
+
+          // 삭제된 채팅방을 목록에서 제거
+          setChatRooms((prev) => {
+            const filtered = prev.filter((room) => room.no !== roomNo);
+            console.log(`🗑️ 공개 채팅방 목록에서 제거 - 이전: ${prev.length}개, 이후: ${filtered.length}개`);
+            console.log("🔍 [DEBUG] 제거된 방 번호:", roomNo);
+            console.log("🔍 [DEBUG] 제거 전 방 목록:", prev.map(r => r.no));
+            console.log("🔍 [DEBUG] 제거 후 방 목록:", filtered.map(r => r.no));
+            return filtered;
+          });
+
+          setMyRooms((prev) => {
+            const filtered = prev.filter((room) => room.no !== roomNo);
+            console.log(`🗑️ 내 채팅방 목록에서 제거 - 이전: ${prev.length}개, 이후: ${filtered.length}개`);
+            return filtered;
+          });
+
+          // 실시간 정보에서도 제거
+          setRealTimeRoomInfo((prev) => {
+            const newMap = new Map(prev);
+            const hadInfo = newMap.has(roomNo);
+            newMap.delete(roomNo);
+            console.log(`🗑️ 실시간 정보에서 제거: ${roomNo} (이전 존재 여부: ${hadInfo})`);
+            return newMap;
+          });
+
+          // 사용자에게 알림 표시
+          alert(`채팅방이 삭제되었습니다. (방 번호: ${roomNo})`);
+        }
+
+        // 기타 알 수 없는 타입 처리
+        else {
+          console.log(`📥 알 수 없는 글로벌 업데이트 타입: ${type}`, notification);
+        }
       }
     );
+
+    console.log("📡 글로벌 채팅방 업데이트 구독 설정 완료");
 
     // 컴포넌트 언마운트 시 구독 해제
     return () => {
@@ -151,7 +250,7 @@ const MultChatRoomList = () => {
         console.log("📡 글로벌 채팅방 리스트 업데이트 구독 해제");
       }
     };
-  }, [isWebSocketConnected]);
+  }, [isWebSocketConnected, currentTab]);
 
   // 공개 채팅방 목록 조회
   const loadPublicChatRooms = useCallback(
@@ -386,20 +485,46 @@ const MultChatRoomList = () => {
     <div className="space-y-6">
       {/* 웹소켓 연결 상태 표시 */}
       <div
-        className={`rounded-lg p-3 text-sm flex items-center space-x-2 ${isWebSocketConnected
+        className={`rounded-lg p-3 text-sm flex items-center justify-between ${isWebSocketConnected
           ? "bg-green-50 text-green-700 border border-green-200"
           : "bg-red-50 text-red-700 border border-red-200"
           }`}
       >
-        <div
-          className={`w-2 h-2 rounded-full ${isWebSocketConnected ? "bg-green-400" : "bg-red-400"
-            }`}
-        />
-        <span>
-          {isWebSocketConnected
-            ? "🟢 실시간 업데이트 연결됨 - 참가자 수가 실시간으로 업데이트됩니다"
-            : "🔴 실시간 연결 끊어짐 - 페이지를 새로고침해주세요"}
-        </span>
+        <div className="flex items-center space-x-2">
+          <div
+            className={`w-2 h-2 rounded-full ${isWebSocketConnected ? "bg-green-400" : "bg-red-400"
+              }`}
+          />
+          <span>
+            {isWebSocketConnected
+              ? "🟢 실시간 업데이트 연결됨 - 참가자 수가 실시간으로 업데이트됩니다"
+              : "🔴 실시간 연결 끊어짐 - 채팅방 삭제가 실시간으로 반영되지 않을 수 있습니다"}
+          </span>
+        </div>
+
+        {/* 웹소켓 재연결 버튼 */}
+        {!isWebSocketConnected && (
+          <button
+            onClick={checkAndReconnectWebSocket}
+            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs transition-colors"
+          >
+            🔄 재연결
+          </button>
+        )}
+
+        {/* 웹소켓 상태 정보 버튼 */}
+        <button
+          onClick={() => {
+            console.log("🔍 웹소켓 상태 정보:");
+            console.log("- Hook 상태:", isWebSocketConnected);
+            console.log("- Service 상태:", websocketService.isWebSocketConnected());
+            console.log("- 현재 시간:", new Date().toISOString());
+            alert(`웹소켓 상태: Hook=${isWebSocketConnected}, Service=${websocketService.isWebSocketConnected()}`);
+          }}
+          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs transition-colors ml-2"
+        >
+          📊 상태확인
+        </button>
       </div>
       {/* 탭 및 액션 버튼 */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0">

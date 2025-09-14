@@ -54,4 +54,10 @@ public interface MultChatRoomService {
 
     // 내가 방장인 채팅방 목록 조회
     List<MultChatRoomDTO> getMyCreatedChatRooms(Long memberNo);
+    
+    // 방장인지 확인
+    boolean isRoomOwner(Long roomNo, Long memberNo);
+    
+    // 방 비활성화 (방장 나가기 시)
+    void deactivateRoom(Long roomNo);
 }

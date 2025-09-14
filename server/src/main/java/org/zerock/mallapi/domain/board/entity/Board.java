@@ -2,6 +2,7 @@ package org.zerock.mallapi.domain.board.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.DynamicUpdate;
 import org.zerock.mallapi.domain.member.entity.Member;
 
 import java.time.LocalDateTime;
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor @AllArgsConstructor @Builder
 @Entity
 @Table(name = "board")
+@DynamicUpdate
 public class Board {
 
     public enum PostType {
@@ -50,6 +52,16 @@ public class Board {
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
+
+    // 위치 정보 필드 추가
+    @Column(name = "location_lat")
+    private Double locationLat;
+
+    @Column(name = "location_lng")
+    private Double locationLng;
+
+    @Column(name = "location_address", length = 500)
+    private String locationAddress;
 
     @PrePersist
     void onPersist() {

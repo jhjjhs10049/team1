@@ -47,7 +47,8 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
-    public Long create(Long writerId, String title, String content, List<String> imageFileNames) {
+    public Long create(Long writerId, String title, String content, List<String> imageFileNames,
+                      Double locationLat, Double locationLng, String locationAddress) {
         Member writer = memberRepository.findById(writerId)
                 .orElseThrow(() -> new IllegalArgumentException("작성자(Member)가 없습니다. id=" + writerId));
 
@@ -55,6 +56,9 @@ public class BoardServiceImpl implements BoardService {
                 .writer(writer)
                 .title(title)
                 .content(content)
+                .locationLat(locationLat)
+                .locationLng(locationLng)
+                .locationAddress(locationAddress)
                 .build();
 
         Board saved = boardRepository.save(board);
@@ -73,7 +77,7 @@ public class BoardServiceImpl implements BoardService {
         return saved.getId();
     }    @Override
     public void update(Long boardId, String title, String content, java.util.List<String> imageFileNames,
-            Long currentUserId) {
+            Long currentUserId, Double locationLat, Double locationLng, String locationAddress) {
         log.info("=== BoardService.update 시작 ===");
         log.info("boardId: {}, currentUserId: {}", boardId, currentUserId);
         log.info("title: {}, content length: {}, images: {}", title, content != null ? content.length() : 0, imageFileNames);
@@ -94,8 +98,13 @@ public class BoardServiceImpl implements BoardService {
 
             board.setTitle(title);
             board.setContent(content);
+            
+            // 위치 정보 업데이트
+            board.setLocationLat(locationLat);
+            board.setLocationLng(locationLng);
+            board.setLocationAddress(locationAddress);
 
-            log.info("게시글 내용 수정 완료");
+            log.info("게시글 내용 및 위치 정보 수정 완료");
 
             // 이미지 교체 (이미지는 게시글 소유자만 수정 가능)
             log.info("기존 이미지 삭제 시작");
@@ -181,16 +190,13 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
+    @Transactional
     public void increaseViewCount(Long boardId) {
-        Board board = boardRepository.findByIdAndIsDeletedFalse(boardId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글이 없습니다. id=" + boardId));
+        int updatedRows = boardRepository.incrementViewCount(boardId);
         
-        if (board.getViewCount() == null) {
-            board.setViewCount(1);
-        } else {
-            board.setViewCount(board.getViewCount() + 1);
+        if (updatedRows == 0) {
+            throw new IllegalArgumentException("게시글이 없거나 삭제된 게시글입니다. id=" + boardId);
         }
-        boardRepository.save(board);
     }
       @Override
     public Long createNotice(Long writerId, String title, String content, List<String> imageFileNames) {

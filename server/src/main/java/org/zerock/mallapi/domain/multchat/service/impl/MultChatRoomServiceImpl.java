@@ -511,4 +511,40 @@ public class MultChatRoomServiceImpl implements MultChatRoomService {
 
         log.info("채팅방 상태 변경 완료 - 방번호: {}, 새 상태: {}", roomNo, status);
     }
+    
+    @Override
+    public boolean isRoomOwner(Long roomNo, Long memberNo) {
+        log.info("방장 권한 확인 - 방번호: {}, 회원번호: {}", roomNo, memberNo);
+        
+        MultChatRoom chatRoom = chatRoomRepository.findById(roomNo)
+                .orElseThrow(() -> new RuntimeException("채팅방을 찾을 수 없습니다."));
+        
+        boolean isOwner = chatRoom.getCreator().getMemberNo().equals(memberNo);
+        log.info("방장 권한 확인 결과 - 방번호: {}, 회원번호: {}, 방장여부: {}", roomNo, memberNo, isOwner);
+        
+        return isOwner;
+    }
+    
+    @Override
+    public void deactivateRoom(Long roomNo) {
+        log.info("방 비활성화 처리 시작 - 방번호: {}", roomNo);
+        
+        MultChatRoom chatRoom = chatRoomRepository.findById(roomNo)
+                .orElseThrow(() -> new RuntimeException("채팅방을 찾을 수 없습니다."));
+        
+        // 방 상태를 CLOSED로 변경 (INACTIVE가 없으므로 CLOSED 사용)
+        chatRoom.setStatus(MultChatRoom.RoomStatus.CLOSED);
+        chatRoomRepository.save(chatRoom);
+        
+        // 모든 활성 참가자를 비활성화
+        List<MultChatRoomParticipant> participants = participantRepository
+                .findActiveByChatRoomNo(roomNo);
+        
+        for (MultChatRoomParticipant participant : participants) {
+            participant.leave();
+        }
+        participantRepository.saveAll(participants);
+        
+        log.info("방 비활성화 완료 - 방번호: {}, 참가자 수: {}", roomNo, participants.size());
+    }
 }

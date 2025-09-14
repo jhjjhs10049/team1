@@ -1,4 +1,6 @@
 import { imageUrl } from "../../api/boardApi";
+import LocationPicker from "../../components/LocationPicker";
+import { useState } from "react";
 
 const BoardFormComponent = ({
   title,
@@ -9,11 +11,15 @@ const BoardFormComponent = ({
   setExistingFiles,
   files,
   setFiles,
+  location,
+  setLocation,
   onSubmit,
   onCancel,
   editing,
   loading,
 }) => {
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
+
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
     setFiles(selectedFiles);
@@ -63,6 +69,55 @@ const BoardFormComponent = ({
           {content.length}/2000자
         </div>
       </div>
+
+      {/* 위치 선택 섹션 */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          위치 정보 (선택사항)
+        </label>
+        {location ? (
+          <div className="border border-gray-300 rounded-lg p-4 bg-gray-50">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span className="font-medium text-gray-800">선택된 위치</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowLocationPicker(true)}
+                className="text-sm text-teal-600 hover:text-teal-700"
+                disabled={loading}
+              >
+                위치 변경
+              </button>
+            </div>
+            {location.address && (
+              <p className="text-gray-700 mb-2">{location.address}</p>
+            )}
+            <p className="text-xs text-gray-500">
+              위도: {location.lat?.toFixed(6)}, 경도: {location.lng?.toFixed(6)}
+            </p>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowLocationPicker(true)}
+            className="w-full border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-teal-500 hover:bg-teal-50 transition-colors"
+            disabled={loading}
+          >
+            <svg className="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <p className="text-gray-600">지도에서 위치 선택하기</p>
+            <p className="text-sm text-gray-500">클릭하여 위치를 선택하세요</p>
+          </button>
+        )}
+      </div>
+
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           이미지
@@ -145,6 +200,14 @@ const BoardFormComponent = ({
           취소
         </button>
       </div>
+
+      {/* LocationPicker 모달 */}
+      <LocationPicker
+        selectedLocation={location}
+        onLocationSelect={setLocation}
+        isVisible={showLocationPicker}
+        onClose={() => setShowLocationPicker(false)}
+      />
     </form>
   );
 };

@@ -13,11 +13,12 @@ public interface BoardService {
 
     Board get(Long boardId);
 
-    Long create(Long writerId, String title, String content, List<String> imageFileNames);
+    Long create(Long writerId, String title, String content, List<String> imageFileNames,
+               Double locationLat, Double locationLng, String locationAddress);
 
     // 수정: 작성자만 가능 -> currentUserId만 전달
     void update(Long boardId, String title, String content, java.util.List<String> imageFileNames,
-            Long currentUserId);
+            Long currentUserId, Double locationLat, Double locationLng, String locationAddress);
 
     // 삭제: 작성자 또는 관리자 가능 -> isAdmin도 전달
     void delete(Long boardId, Long currentUserId, boolean isAdmin);

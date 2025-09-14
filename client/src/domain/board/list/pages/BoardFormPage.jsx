@@ -22,6 +22,7 @@ export default function BoardFormPage() {
   const [content, setContent] = useState("");
   const [existingFiles, setExistingFiles] = useState([]);
   const [files, setFiles] = useState([]);
+  const [boardLocation, setBoardLocation] = useState(null); // location 변수명과 충돌 방지
   const [loading, setLoading] = useState(false);
   const [authorEmail, setAuthorEmail] = useState("");
   const [dataLoaded, setDataLoaded] = useState(false); // 로그인 상태 확인
@@ -44,6 +45,15 @@ export default function BoardFormPage() {
         setTitle(detail?.title ?? "");
         setContent(detail?.content ?? "");
         setAuthorEmail(detail?.writerEmail ?? "");
+
+        // 위치 정보 설정
+        if (detail?.locationLat && detail?.locationLng) {
+          setBoardLocation({
+            lat: detail.locationLat,
+            lng: detail.locationLng,
+            address: detail.locationAddress
+          });
+        }
 
         const prev = Array.isArray(detail?.images)
           ? detail.images.map((i) => i.fileName)
@@ -83,16 +93,31 @@ export default function BoardFormPage() {
         }
       }
       if (editing) {
-        await updateBoard({
+        const updateData = {
           boardId: bno,
           title,
           content,
           images: imageFileNames,
-        });
+          locationLat: boardLocation?.lat,
+          locationLng: boardLocation?.lng,
+          locationAddress: boardLocation?.address,
+        };
+        console.log('게시물 수정 데이터:', updateData);
+        await updateBoard(updateData);
         alert("수정되었습니다.");
         navigate(`/board/read/${bno}${location.search}`);
       } else {
-        await createBoard({ title, content, images: imageFileNames });
+        const createData = {
+          title,
+          content,
+          images: imageFileNames,
+          locationLat: boardLocation?.lat,
+          locationLng: boardLocation?.lng,
+          locationAddress: boardLocation?.address,
+        };
+        console.log('게시물 생성 데이터:', createData);
+        const result = await createBoard(createData);
+        console.log('게시물 생성 결과:', result);
         alert("등록되었습니다.");
         navigate("/board");
       }
@@ -129,6 +154,8 @@ export default function BoardFormPage() {
             setExistingFiles={setExistingFiles}
             files={files}
             setFiles={setFiles}
+            location={boardLocation}
+            setLocation={setBoardLocation}
             onSubmit={handleSubmit}
             onCancel={handleCancel}
             editing={editing}
@@ -170,6 +197,8 @@ export default function BoardFormPage() {
             setExistingFiles={setExistingFiles}
             files={files}
             setFiles={setFiles}
+            location={boardLocation}
+            setLocation={setBoardLocation}
             onSubmit={handleSubmit}
             onCancel={handleCancel}
             editing={editing}

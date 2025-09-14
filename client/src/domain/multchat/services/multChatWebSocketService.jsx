@@ -166,6 +166,7 @@ class MultChatWebSocketService {
 
       this.currentRoomNo = roomNo;
       console.log(`✅ 채팅방 ${roomNo} 입장 완료`);
+      console.log(`🔍 [DEBUG] currentRoomNo 설정됨: ${this.currentRoomNo}`);
       return true;
     } catch (error) {
       console.error("❌ 채팅방 입장 실패:", error);
@@ -185,15 +186,21 @@ class MultChatWebSocketService {
       return false;
     }
 
-    // 이미 나간 채팅방인지 확인
-    if (targetRoomNo !== this.currentRoomNo) {
-      console.log(`⚠️ 이미 채팅방 ${targetRoomNo}에서 나간 상태입니다.`);
+    console.log(`🔍 [DEBUG] leaveRoom 실행 - targetRoomNo: ${targetRoomNo}, currentRoomNo: ${this.currentRoomNo}, isRealLeave: ${isRealLeave}`);
+
+    // 🔧 조건 검사 수정: roomNo가 명시적으로 전달된 경우에는 currentRoomNo와 다를 수 있음
+    // 실제 나가기가 아닌 경우에만 currentRoomNo 일치 여부 검사
+    if (!isRealLeave && targetRoomNo !== this.currentRoomNo) {
+      console.log(`⚠️ 임시 나가기 요청이지만 다른 채팅방 ${targetRoomNo} (현재: ${this.currentRoomNo})`);
       return true;
     }
 
     if (isRealLeave) {
       console.log(`🚪 실제 나가기 - 채팅방 ${targetRoomNo}`);
-      
+      console.log("🔍 [DEBUG] 실제 나가기 WebSocket 메시지 전송 시작");
+      console.log("🔍 [DEBUG] destination:", `/app/multchat/leave/${targetRoomNo}`);
+      console.log("🔍 [DEBUG] messageType: REAL_LEAVE");
+
       try {
         // 실제 나가기 메시지 전송
         this.client.publish({
@@ -204,16 +211,24 @@ class MultChatWebSocketService {
           }),
         });
 
-        // 해당 채팅방 관련 구독 모두 해제
-        this.unsubscribeRoom(targetRoomNo);
+        console.log("🔍 [DEBUG] WebSocket 메시지 전송 완료");
 
-        // 현재 채팅방 정보 초기화
-        this.currentRoomNo = null;
+        // 잠시 대기 후 구독 해제 (서버에서 USER_LEFT 알림을 받을 시간을 줌)
+        setTimeout(() => {
+          // 해당 채팅방 관련 구독 모두 해제
+          this.unsubscribeRoom(targetRoomNo);
+          console.log("🔍 [DEBUG] 구독 해제 완료 (지연 후)");
+
+          // 현재 채팅방 정보 초기화
+          this.currentRoomNo = null;
+          console.log("🔍 [DEBUG] 현재 채팅방 정보 초기화 완료");
+        }, 1000); // 1초 후에 구독 해제
 
         console.log(`✅ 실제 나가기 완료 - 채팅방 ${targetRoomNo}`);
         return true;
       } catch (error) {
         console.error("❌ 실제 나가기 실패:", error);
+        console.error("🔍 [DEBUG] 실제 나가기 에러 상세:", error.stack);
         return false;
       }
     } else {
@@ -296,7 +311,7 @@ class MultChatWebSocketService {
     if (typeof arg1 === 'string' && arg1.startsWith('/app/')) {
       const destination = arg1;
       const data = arg2;
-      
+
       try {
         console.log(`📤 메시지 전송 (호환 모드) - 목적지: ${destination}`);
         console.log(`📦 전송 데이터:`, data);
@@ -316,7 +331,7 @@ class MultChatWebSocketService {
       // 멀티 채팅 방식 (roomNo, content)
       const roomNo = arg1;
       const content = arg2;
-      
+
       if (!content || content.trim() === "") {
         console.warn("⚠️ 빈 메시지는 전송할 수 없습니다.");
         return false;
@@ -481,7 +496,7 @@ class MultChatWebSocketService {
 
     try {
       console.log(`📡 구독 시작: ${destination}`);
-      
+
       const subscription = this.client.subscribe(destination, (message) => {
         try {
           const data = JSON.parse(message.body);
@@ -496,7 +511,7 @@ class MultChatWebSocketService {
 
       this.subscriptions.set(destination, subscription);
       this.messageCallbacks.set(destination, callback);
-      
+
       console.log(`✅ 구독 완료: ${destination}`);
       return subscription;
     } catch (error) {
@@ -534,8 +549,7 @@ class MultChatWebSocketService {
   _handleDisconnection() {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       console.log(
-        `🔄 재연결 시도 ${this.reconnectAttempts + 1}/${
-          this.maxReconnectAttempts
+        `🔄 재연결 시도 ${this.reconnectAttempts + 1}/${this.maxReconnectAttempts
         }`
       );
 

@@ -16,6 +16,8 @@ import gymsRouter from "./gymsRouter";
 import schedulerRouter from "./schedulerRouter";
 // trainers
 import trainersRouter from "./trainersRouter";
+// tip (운동 팁 관리)
+import tipRouter from "./tipRouter";
 
 // page
 
@@ -106,6 +108,11 @@ const root = createBrowserRouter([
   {
     path: "trainers",
     children: trainersRouter(),
+  },
+  // tip management (관리자용)
+  {
+    path: "admin/tips",
+    children: tipRouter(),
   },
 
   // 404 에러 처리 (모든 경로의 맨 마지막에 배치)

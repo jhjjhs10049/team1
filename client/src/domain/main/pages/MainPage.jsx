@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BasicLayout from "../../../layouts/BasicLayout";
 import { getLatestNotice, getLatestAd } from "../../board/api/boardApi";
+import useNearbyGyms from "../hooks/useNearbyGyms";
+import useRandomTip from "../../tip/hooks/useRandomTip";
+import useCustomLogin from "../../member/login/hooks/useCustomLogin";
 
 const MainPage = () => {
   // 안전한 날짜 포맷팅 함수
@@ -17,10 +20,16 @@ const MainPage = () => {
     }
   };
   const navigate = useNavigate();
-  // 오늘의 운동팁
-  const [dailyTip, setDailyTip] = useState("불러오는 중...");
+  const { loginState } = useCustomLogin();
 
-  // 최신 공지사항과 광고
+  // 관리자 권한 확인
+  const isAdmin = loginState?.roleNames?.some(role =>
+    role === 'ADMIN' || role === 'MANAGER'
+  );  // 주변 피트니스 센터 정보
+  const { nearbyGyms, loading: gymsLoading, error: gymsError, isDefaultLocation } = useNearbyGyms(5000, 3);
+
+  // 랜덤 운동 팁
+  const { tip: dailyTip, loading: tipLoading, error: tipError } = useRandomTip();  // 최신 공지사항과 광고
   const [latestNotice, setLatestNotice] = useState(null);
   const [latestAd, setLatestAd] = useState(null);
 
@@ -30,18 +39,6 @@ const MainPage = () => {
   const [routineResult, setRoutineResult] = useState("");
   const [isLoadingRoutine, setIsLoadingRoutine] = useState(false);
   const [selectedGym, setSelectedGym] = useState("");
-  // 오늘의 운동팁 호출
-  useEffect(() => {
-    async function fetchTip() {
-      try {
-        // TODO: 서버 프록시를 통해 Gemini API 호출
-        setDailyTip("꾸준한 스트레칭은 부상의 위험을 줄여줍니다!");
-      } catch {
-        setDailyTip("운동 팁을 불러오지 못했습니다.");
-      }
-    }
-    fetchTip();
-  }, []);
 
   // 최신 공지사항과 광고 가져오기
   useEffect(() => {
@@ -105,37 +102,122 @@ const MainPage = () => {
         </section>
         {/* 오늘의 운동팁 */}
         <section className="bg-white p-8 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-300 mb-12">
-          <h2 className="text-2xl font-bold mb-4">✨ 오늘의 운동 팁</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-bold">✨ 오늘의 운동 팁</h2>
+            {isAdmin && (
+              <button
+                onClick={() => navigate('/admin/tips/manage')}
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-600 transition-colors flex items-center gap-2"
+              >
+                ⚙️ 팁 관리
+              </button>
+            )}
+          </div>
           <div className="bg-gray-100 p-4 rounded-lg min-h-[80px] flex items-center justify-center">
-            <p>{dailyTip}</p>
+            {tipLoading ? (
+              <p className="text-gray-500">팁을 불러오는 중...</p>
+            ) : tipError ? (
+              <p className="text-red-500">운동 팁을 불러오는데 실패했습니다.</p>
+            ) : (
+              <p className="text-center">{dailyTip?.content || "꾸준한 운동이 건강의 비결입니다!"}</p>
+            )}
           </div>
         </section>
-        {/* 주변시설 리스트 (mock) */}
+        {/* 주변시설 리스트 */}
         <section className="bg-white p-8 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-300 mb-12">
           <h3 className="text-xl font-bold mb-4 text-center">
             내 주변 피트니스 센터 목록
           </h3>
-          <div className="space-y-4">
-            {["파워 피트니스", "에너짐", "바디 채널"].map((gym, idx) => (
-              <div
-                key={idx}
-                className="p-4 border border-gray-200 rounded-lg bg-white shadow-sm hover:shadow-md hover:bg-gray-50 transition-all duration-300 flex justify-between items-center"
-              >
-                <div>
-                  <h4 className="font-bold">{gym}</h4>
-                  <p className="text-sm text-gray-600">
-                    서울시 예시 주소 {idx + 1}
-                  </p>
-                </div>
-                <button
-                  onClick={() => openRoutineModal(gym)}
-                  className="bg-gray-800 text-white rounded-lg px-4 py-2 text-sm hover:bg-black"
-                >
-                  ✨ AI 루틴 추천
-                </button>
+
+          {/* 위치 정보 표시 */}
+          {isDefaultLocation && (
+            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <p className="text-sm text-amber-700 text-center">
+                📍 위치 정보를 가져올 수 없어 서울시청 기준으로 표시됩니다.
+              </p>
+            </div>
+          )}
+
+          {gymsLoading ? (
+            <div className="text-center py-8">
+              <div className="text-gray-500">주변 피트니스 센터를 찾는 중...</div>
+            </div>
+          ) : gymsError ? (
+            <div className="text-center py-8">
+              <div className="text-red-500 mb-4">{gymsError}</div>
+              <div className="space-y-4">
+                {["파워 피트니스", "에너짐", "바디 채널"].map((gym, idx) => (
+                  <div
+                    key={idx}
+                    className="p-4 border border-gray-200 rounded-lg bg-white shadow-sm hover:shadow-md hover:bg-gray-50 transition-all duration-300"
+                  >
+                    <div>
+                      <h4 className="font-bold">{gym}</h4>
+                      <p className="text-sm text-gray-600">
+                        예시 주소 {idx + 1}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          ) : nearbyGyms.length === 0 ? (
+            <div className="text-center py-8">
+              <div className="text-gray-500 mb-4">주변에 등록된 피트니스 센터가 없습니다.</div>
+              <div className="space-y-4">
+                {["파워 피트니스", "에너짐", "바디 채널"].map((gym, idx) => (
+                  <div
+                    key={idx}
+                    className="p-4 border border-gray-200 rounded-lg bg-white shadow-sm hover:shadow-md hover:bg-gray-50 transition-all duration-300"
+                  >
+                    <div>
+                      <h4 className="font-bold">{gym}</h4>
+                      <p className="text-sm text-gray-600">
+                        예시 주소 {idx + 1}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {nearbyGyms.map((gym) => (
+                <div
+                  key={gym.gymNo}
+                  className="p-4 border border-gray-200 rounded-lg bg-white shadow-sm hover:shadow-md hover:bg-gray-50 transition-all duration-300 flex justify-between items-center cursor-pointer"
+                  onClick={() => navigate(`/gyms/detail/${gym.gymNo}`)}
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4 className="font-bold text-gray-800">{gym.title}</h4>
+                      {gym.rate > 0 && (
+                        <span className="text-sm text-yellow-600">⭐ {gym.rate.toFixed(1)}</span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600 mb-1">{gym.address}</p>
+                    <div className="flex items-center gap-3 text-xs text-gray-500">
+                      <span>📍 {gym.distance >= 1000 ? `${(gym.distance / 1000).toFixed(1)}km` : `${gym.distance}m`}</span>
+                      {gym.facilities && gym.facilities.length > 0 && (
+                        <span>🏋️ {gym.facilities.slice(0, 2).join(', ')}</span>
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/gyms/detail/${gym.gymNo}`);
+                      }}
+                      className="bg-teal-500 text-white rounded-lg px-4 py-2 text-sm hover:bg-teal-600 transition-colors"
+                    >
+                      상세보기
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
         {/* 공지사항 */}
         <section>

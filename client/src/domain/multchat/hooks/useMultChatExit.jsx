@@ -26,21 +26,39 @@ const useMultChatExit = (roomInfo, username, navigate) => {
 
         try {
             setIsLeaving(true);
-            console.log("📤 채팅방 나가기 요청...", { roomNo: roomInfo.no });
+            console.log("� [DEBUG] 채팅방 나가기 프로세스 시작");
+            console.log("�📤 채팅방 나가기 요청...", { roomNo: roomInfo.no });
+            console.log("🔍 [DEBUG] WebSocket 연결 상태:", websocketService.isWebSocketConnected());
+            console.log("🔍 [DEBUG] 현재 채팅방 번호:", roomInfo.no);
 
             // 1. 웹소켓을 통한 실시간 나가기 알림 전송 (실제 나가기)
             if (websocketService.isWebSocketConnected()) {
                 console.log("📤 웹소켓 실제 나가기 처리...");
+                console.log("🔍 [DEBUG] leaveRoom 호출 전 - roomNo:", roomInfo.no, "isRealLeave: true");
                 const success = websocketService.leaveRoom(roomInfo.no, true); // isRealLeave = true
+                console.log("🔍 [DEBUG] leaveRoom 호출 결과:", success);
                 if (success) {
                     console.log("✅ 웹소켓 실제 나가기 완료");
                 } else {
                     console.warn("⚠️ 웹소켓 실제 나가기 실패");
                 }
+            } else {
+                console.error("❌ WebSocket이 연결되지 않음!");
             }
 
             // 2. API 호출로 실제 채팅방에서 나가기 (DB 업데이트)
-            await leaveChatRoom(roomInfo.no);
+            // ⚠️ WebSocket으로 이미 처리되었으므로 HTTP API 호출 제거
+            console.log("ℹ️ WebSocket으로 나가기 처리 완료, HTTP API 호출 생략");
+
+            /*
+            try {
+                await leaveChatRoom(roomInfo.no);
+                console.log("✅ HTTP API 채팅방 나가기 완료");
+            } catch (apiError) {
+                console.warn("⚠️ HTTP API 채팅방 나가기 실패 (WebSocket으로 이미 처리됨):", apiError.message);
+                // WebSocket으로 이미 처리되었으므로 에러 무시하고 계속 진행
+            }
+            */
 
             console.log("✅ 채팅방 나가기 완료");
 

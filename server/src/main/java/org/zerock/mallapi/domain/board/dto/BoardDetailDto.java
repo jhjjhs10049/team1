@@ -21,4 +21,9 @@ public class BoardDetailDto {
     private List<ReplyDto> replies;
     private LocalDateTime regDate;
     private LocalDateTime modDate;
+    
+    // 위치 정보 필드 추가
+    private Double locationLat;
+    private Double locationLng;
+    private String locationAddress;
 }

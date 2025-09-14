@@ -86,6 +86,27 @@ public class JWTCheckFilter extends OncePerRequestFilter {
             return false;
         }
 
+        // Fitness Tips API - 조회는 공개, 관리는 관리자만
+        if(path.startsWith("/api/fitness-tips")) {
+            if("GET".equals(method)) {
+                // 랜덤 팁, 활성화된 팁 목록은 공개
+                if(path.equals("/api/fitness-tips/random") || 
+                   path.equals("/api/fitness-tips/active") ||
+                   path.matches("/api/fitness-tips/\\d+/?$")) { // 특정 팁 조회
+                    log.debug("JWT filter excluded (fitness-tips GET): {}", path);
+                    return true;
+                }
+                // 관리자 API는 인증 필요
+                if(path.startsWith("/api/fitness-tips/admin")) {
+                    log.debug("JWT filter applied (fitness-tips admin): {}", path);
+                    return false;
+                }
+            }
+            // POST, PUT, DELETE 등은 인증 필요 (관리자 기능)
+            log.debug("JWT filter applied (fitness-tips non-GET): {}", path);
+            return false;
+        }
+
         // /api/files의 GET 요청만 체크하지 않음 (파일 조회)
         if(path.startsWith("/api/files") && "GET".equals(method)) {
             log.debug("JWT filter excluded (file access): {}", path);

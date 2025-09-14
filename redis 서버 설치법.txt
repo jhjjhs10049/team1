@@ -1,0 +1,11 @@
+https://github.com/microsoftarchive/redis/releases
+
+Redis-x64-버전.zip 설치
+
+c에 Redis 폴더 만들고 그 폴더에 다운받은 zip 파일 열기
+
+powershell 관리자 페이지 열고 
+
+cd C:\Redis
+
+.\redis-server.exe

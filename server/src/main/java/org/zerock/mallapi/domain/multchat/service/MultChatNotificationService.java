@@ -53,6 +53,25 @@ public class MultChatNotificationService {
     }
 
     /**
+     * 사용자 나가기 알림 전송
+     */
+    public void sendUserLeftNotification(Long roomNo, String nickname, Long memberNo) {
+        String notificationDestination = "/topic/multchat/room/" + roomNo + "/notification";
+        
+        Map<String, Object> userLeftNotification = Map.of(
+            "type", "USER_LEFT",
+            "roomNo", roomNo,
+            "nickname", nickname,
+            "memberNo", memberNo,
+            "timestamp", System.currentTimeMillis()
+        );
+        
+        messagingTemplate.convertAndSend(notificationDestination, userLeftNotification);
+        log.info("📤 사용자 나가기 알림 전송 완료 - 채팅방: {}, 사용자: {}, 목적지: {}", 
+                 roomNo, nickname, notificationDestination);
+    }
+
+    /**
      * 시스템 메시지와 사용자 목록 업데이트를 함께 전송
      */
     public void sendSystemMessageWithUserUpdate(Long roomNo, Object systemMessage, 

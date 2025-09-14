@@ -18,6 +18,7 @@ import {
   AuthorOrAdminButton,
   AuthorOnlyLink,
 } from "../../../../common/config/ProtectedBoard";
+import LocationDisplay from "../../components/LocationDisplay";
 
 export default function BoardDetail() {
   const { bno } = useParams();
@@ -34,7 +35,7 @@ export default function BoardDetail() {
   const myMemberNo = loginState?.memberNo || null;
   const isAdmin = Array.isArray(loginState?.roleNames)
     ? loginState.roleNames.includes("ADMIN") ||
-      loginState.roleNames.includes("MANAGER")
+    loginState.roleNames.includes("MANAGER")
     : loginState?.role === "ADMIN" || loginState?.role === "MANAGER";
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -275,6 +276,20 @@ export default function BoardDetail() {
               ))}
             </div>
           )}
+
+          {/* 위치 정보 */}
+          {detail.locationLat && detail.locationLng && (
+            <div className="mb-6">
+              <LocationDisplay
+                location={{
+                  lat: detail.locationLat,
+                  lng: detail.locationLng,
+                  address: detail.locationAddress
+                }}
+              />
+            </div>
+          )}
+
           <div className="prose max-w-none mb-6">
             <p className="text-gray-700 whitespace-pre-wrap break-words leading-relaxed">
               {detail.content}
