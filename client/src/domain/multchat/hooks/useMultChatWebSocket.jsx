@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import websocketService from "../services/multChatWebSocketService";
 import { WEBSOCKET_DESTINATIONS } from "../../global/constants/websocketDestinations";
+import { MultChatEventBus, MultChatEvents } from "../services/multChatEventBus";
 import useCustomLogin from "../../member/login/hooks/useCustomLogin";
 
 const useMultChatWebSocket = (roomNo, isInRoom = false) => {
@@ -9,6 +10,7 @@ const useMultChatWebSocket = (roomNo, isInRoom = false) => {
   const [roomInfo, setRoomInfo] = useState(null);
   const [roomUpdateCallback, setRoomUpdateCallback] = useState(null);
   const { loginState } = useCustomLogin();
+  const storageKey = (roomNo) => `multchat:participants:${roomNo}`;
 
   // 웹소켓 연결
   useEffect(() => {
@@ -68,7 +70,7 @@ const useMultChatWebSocket = (roomNo, isInRoom = false) => {
             // 서버에서 보내는 실제 참가자 목록 업데이트 (상세 정보 포함)
             console.log("📥 USER_LIST_UPDATE 알림 전체 내용:", notification);
 
-            // 새로운 participants 배열 우선 처리
+            // participants 배열과 onlineUsers를 병합해 누락 없이 구성
             if (
               notification.participants &&
               Array.isArray(notification.participants)
@@ -76,8 +78,8 @@ const useMultChatWebSocket = (roomNo, isInRoom = false) => {
               console.log("👥 상세 참가자 정보:", notification.participants);
               console.log("👥 참가자 수:", notification.participants.length);
 
-              // 서버에서 보내는 상세 참가자 정보를 그대로 사용
-              const participantList = notification.participants.map(
+              // 상세 참가자 정보를 1차 변환
+              const baseList = notification.participants.map(
                 (participant, index) => ({
                   memberNo: participant.memberNo || `participant_${index}`,
                   nickname:
@@ -91,23 +93,45 @@ const useMultChatWebSocket = (roomNo, isInRoom = false) => {
                 })
               );
 
-              console.log("👥 변환된 참가자 목록:", participantList);
-              setParticipants([...participantList]);
+              // onlineUsers 병합 (중복 제거)
+              let mergedList = [...baseList];
+              if (notification.onlineUsers) {
+                const userArray = Array.isArray(notification.onlineUsers)
+                  ? notification.onlineUsers
+                  : Array.from(notification.onlineUsers);
+                const nicknameSet = new Set(
+                  mergedList.map((p) => String(p.nickname))
+                );
+                userArray.forEach((name, idx) => {
+                  const key = String(name);
+                  if (!nicknameSet.has(key)) {
+                    nicknameSet.add(key);
+                    mergedList.push({
+                      memberNo: `online_${idx}`,
+                      nickname: key,
+                      isOnline: true,
+                      joinedAt: new Date().toISOString(),
+                      role: "USER",
+                    });
+                  }
+                });
+              }
 
-              // 채팅방 정보 업데이트
+              console.log("👥 병합된 참가자 목록:", mergedList);
+              setParticipants(mergedList);
+
+              // 채팅방 정보 업데이트 (병합 결과 기준)
               setRoomInfo((prev) => {
                 const updated = prev
                   ? {
                     ...prev,
-                    currentParticipants: participantList.length,
+                    currentParticipants: mergedList.length,
                   }
                   : null;
-                console.log("🏠 채팅방 정보 업데이트 (participants):", updated);
+                console.log("🏠 채팅방 정보 업데이트 (merged):", updated);
                 return updated;
               });
-            }
-            // 기존 onlineUsers 방식도 fallback으로 유지
-            else if (
+            } else if (
               notification.onlineUsers &&
               notification.userCount !== undefined
             ) {
@@ -122,29 +146,38 @@ const useMultChatWebSocket = (roomNo, isInRoom = false) => {
                 ? notification.onlineUsers
                 : Array.from(notification.onlineUsers);
 
-              const participantList = userArray.map((username, index) => ({
-                memberNo: `online_${index}`,
-                nickname: username,
-                isOnline: true,
-                joinedAt: new Date().toISOString(),
-              }));
-
-              console.log(
-                "👥 참가자 목록 실시간 업데이트 (fallback):",
-                participantList
-              );
-              setParticipants([...participantList]);
-
-              // 채팅방 정보 업데이트
-              setRoomInfo((prev) => {
-                const updated = prev
-                  ? {
-                    ...prev,
-                    currentParticipants: notification.userCount,
+              // 기존 참가자 목록(prev)을 유지하면서 온라인 사용자와 합집합으로 병합
+              setParticipants((prev) => {
+                const byNickname = new Map((prev || []).map((p) => [String(p.nickname), p]));
+                userArray.forEach((username, index) => {
+                  const key = String(username);
+                  if (!byNickname.has(key)) {
+                    byNickname.set(key, {
+                      memberNo: `online_${index}`,
+                      nickname: key,
+                      isOnline: true,
+                      joinedAt: new Date().toISOString(),
+                    });
+                  } else {
+                    // 온라인 상태 갱신
+                    const existing = byNickname.get(key);
+                    byNickname.set(key, { ...existing, isOnline: true });
                   }
-                  : null;
-                console.log("🏠 채팅방 정보 업데이트 (fallback):", updated);
-                return updated;
+                });
+
+                const merged = Array.from(byNickname.values());
+                console.log("👥 참가자 목록 실시간 업데이트 (fallback-merged):", merged);
+
+                // 채팅방 정보 업데이트(합집합 기준)
+                setRoomInfo((prevInfo) => {
+                  const updated = prevInfo
+                    ? { ...prevInfo, currentParticipants: merged.length }
+                    : null;
+                  console.log("🏠 채팅방 정보 업데이트 (fallback-merged):", updated);
+                  return updated;
+                });
+
+                return merged;
               });
             } else {
               console.warn(
@@ -257,6 +290,51 @@ const useMultChatWebSocket = (roomNo, isInRoom = false) => {
     };
   }, [isWebSocketConnected, roomNo, isInRoom]);
 
+  // [신규] 방 내부 최초 마운트 시 참가자 목록 복원/프리필 (깜빡임 방지)
+  useEffect(() => {
+    if (!isInRoom || !roomNo) return;
+
+    try {
+      const saved = sessionStorage.getItem(storageKey(roomNo));
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setParticipants(parsed);
+          setRoomInfo((prev) => (prev ? { ...prev, currentParticipants: parsed.length } : prev));
+          return;
+        }
+      }
+    } catch (e) {
+      // no-op
+    }
+
+    // 저장된 목록이 없으면 현재 사용자만이라도 즉시 프리필하여 UI 깜빡임 방지
+    if (loginState?.nickname) {
+      const self = {
+        memberNo: loginState?.memberNo ?? "current",
+        nickname: loginState.nickname,
+        isOnline: true,
+        joinedAt: new Date().toISOString(),
+        role: "USER",
+      };
+      setParticipants((prev) => {
+        const exists = prev.some((p) => p.nickname === self.nickname);
+        return exists ? prev : [self, ...prev];
+      });
+      setRoomInfo((prev) => (prev ? { ...prev, currentParticipants: 1 } : prev));
+    }
+  }, [isInRoom, roomNo, loginState?.memberNo, loginState?.nickname]);
+
+  // [신규] 참가자 목록을 세션 스토리지에 보존 (방 내부에서만)
+  useEffect(() => {
+    if (!isInRoom || !roomNo) return;
+    try {
+      sessionStorage.setItem(storageKey(roomNo), JSON.stringify(participants));
+    } catch (e) {
+      // no-op
+    }
+  }, [participants, isInRoom, roomNo]);
+
   // 전체 채팅방 상태 구독 (목록 페이지용)
   useEffect(() => {
     if (!isWebSocketConnected || isInRoom) return;
@@ -365,6 +443,18 @@ const useMultChatWebSocket = (roomNo, isInRoom = false) => {
   // 🚫 임시 퇴장 기능 제거 - 나가기 버튼을 누르지 않는 한 절대 퇴장하지 않음
   // 현재 참가자 수 계산
   const currentParticipantCount = participants.length; // 목록 페이지용 콜백 등록 함수
+  // participants 변경 시 전역 이벤트로도 브로드캐스트 (리스트 화면 실시간 반영)
+  useEffect(() => {
+    if (isInRoom && roomNo) {
+      MultChatEventBus.emit(MultChatEvents.ROOM_PARTICIPANT_COUNT_UPDATE, {
+        roomNo,
+        currentParticipants: participants.length,
+        timestamp: Date.now(),
+        source: "in-room-hook",
+      });
+    }
+  }, [participants.length, isInRoom, roomNo]);
+
   const registerRoomUpdateCallback = useCallback((callback) => {
     setRoomUpdateCallback(() => callback); // 함수를 래핑해서 즉시 호출 방지
   }, []);

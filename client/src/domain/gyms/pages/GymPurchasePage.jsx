@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import BasicLayout from "../../../layouts/BasicLayout.jsx";
 import { createSchedule } from "../../scheduler/api/scheduleApi.jsx";
 import { fetchGymDetail } from "../api/gymApi.jsx";
+import { dateTimeUtils } from "../../../common/utils/dateTimeUtils.jsx";
 
 const DUMMY_TRAINERS = [
   { id: 101, name: "홍길동", basePrice: 40000 },
@@ -83,17 +84,28 @@ const GymPurchasePage = () => {
       );
       if (!paymentConfirmed) return;
 
-      // 스케줄 등록을 위한 시간 계산
+      // 스케줄 등록을 위한 시간 계산 (한국 시간대 고려)
       const startDateTime = new Date(`${selectedDate}T${selectedTime}:00`);
       const endDateTime = new Date(startDateTime);
       endDateTime.setHours(startDateTime.getHours() + 1); // 1시간 세션
+
+      // 안전한 로컬 ISO 문자열 변환
+      const formatSafeLocalISO = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+      };
 
       // 스케줄 등록 데이터 준비
       const scheduleData = {
         date: selectedDate,
         title: `${gymName} PT 세션`,
-        startTime: startDateTime.toISOString(),
-        endTime: endDateTime.toISOString(),
+        startTime: formatSafeLocalISO(startDateTime),
+        endTime: formatSafeLocalISO(endDateTime),
         gym: gymName,
         trainerName: selectedTrainer?.name,
         color: "bg-teal-500", // 헬스장 색상 (Tailwind 클래스)

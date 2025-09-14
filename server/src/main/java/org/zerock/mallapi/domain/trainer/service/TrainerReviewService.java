@@ -10,4 +10,6 @@ public interface TrainerReviewService {
     TrainerReviewDTO addReview(TrainerReviewDTO dto);
 
     void deleteReview(Long reviewNo, Long memberNo);
+    
+    void createTestReviewData();
 }

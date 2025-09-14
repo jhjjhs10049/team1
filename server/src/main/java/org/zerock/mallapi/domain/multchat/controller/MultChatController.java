@@ -100,6 +100,22 @@ public class MultChatController {
         }
     }
 
+    // 내가 생성한 채팅방 목록 조회 (인증 필요)
+    @GetMapping("/rooms/created")
+    public ResponseEntity<List<MultChatRoomDTO>> getMyCreatedChatRooms(
+            @AuthenticationPrincipal MemberDTO memberDTO) {
+        log.info("내가 생성한 멀티채팅방 목록 조회 - memberNo: {}", memberDTO.getMemberNo());
+        
+        try {
+            List<MultChatRoomDTO> myCreatedRooms = multChatRoomService.getMyCreatedChatRooms(memberDTO.getMemberNo());
+            log.info("내가 생성한 멀티채팅방 목록 조회 완료 - {} 개", myCreatedRooms.size());
+            return ResponseEntity.ok(myCreatedRooms);
+        } catch (Exception e) {
+            log.error("내가 생성한 멀티채팅방 목록 조회 오류 - memberNo: {}", memberDTO.getMemberNo(), e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
     // 채팅방 상세 조회
     @GetMapping("/rooms/{roomId}")
     public ResponseEntity<MultChatRoomDTO> getRoomById(
@@ -289,6 +305,27 @@ public class MultChatController {
             return ResponseEntity.ok(Map.of("success", true));
         } catch (Exception e) {
             log.error("메시지 삭제 오류 - messageNo: {}", messageNo, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+    
+    // 사용자의 채팅방 참가 상태 확인
+    @GetMapping("/rooms/{roomNo}/participation-status")
+    public ResponseEntity<Map<String, Object>> getParticipationStatus(
+            @PathVariable Long roomNo,
+            @AuthenticationPrincipal MemberDTO memberDTO) {
+        
+        log.info("참가 상태 확인 - roomNo: {}, memberNo: {}", roomNo, memberDTO.getMemberNo());
+        
+        try {
+            boolean isParticipating = multChatRoomService.isUserParticipating(roomNo, memberDTO.getMemberNo());
+            return ResponseEntity.ok(Map.of(
+                "isParticipating", isParticipating,
+                "roomNo", roomNo,
+                "memberNo", memberDTO.getMemberNo()
+            ));
+        } catch (Exception e) {
+            log.error("참가 상태 확인 오류 - roomNo: {}, memberNo: {}", roomNo, memberDTO.getMemberNo(), e);
             return ResponseEntity.internalServerError().build();
         }
     }

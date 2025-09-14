@@ -60,4 +60,7 @@ public interface MultChatRoomService {
     
     // 방 비활성화 (방장 나가기 시)
     void deactivateRoom(Long roomNo);
+    
+    // 특정 사용자의 채팅방 참가 상태 확인
+    boolean isUserParticipating(Long roomNo, Long memberNo);
 }

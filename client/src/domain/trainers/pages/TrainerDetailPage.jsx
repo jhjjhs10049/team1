@@ -3,6 +3,7 @@ import BasicLayout from "../../../layouts/BasicLayout";
 import { fetchTrainerDetail, fetchTrainerReviews } from "../api/trainerApi.jsx";
 import { useNavigate, useParams } from "react-router-dom";
 import { API_SERVER_HOST } from "../../global/api/axios";
+import { StarRating } from "../../gyms/components/ReviewList";
 
 const TrainerDetailPage = () => {
   const { trainerno } = useParams();
@@ -182,11 +183,22 @@ const TrainerDetailPage = () => {
                         key={r.reviewNo}
                         className="bg-slate-50 border border-slate-200 rounded-lg p-4 transition-all duration-300 hover:bg-slate-100 hover:shadow-md hover:-translate-y-0.5"
                       >
-                        <div className="font-bold text-gray-800 mb-2">
-                          {r.writerName || "익명"} 님
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="font-bold text-gray-800">
+                            {r.writerNickname || "익명"} 님
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <StarRating score={r.score} size={16} />
+                            <span className="text-gray-600 font-medium text-sm">
+                              ({Number(r.score).toFixed(1)})
+                            </span>
+                          </div>
                         </div>
-                        <div className="text-sm text-gray-700">
+                        <div className="text-sm text-gray-700 mb-2">
                           {r.comment || ""}
+                        </div>
+                        <div className="text-xs text-gray-500 text-right">
+                          {new Date(r.createdDate).toLocaleDateString()}
                         </div>
                       </div>
                     ))}

@@ -83,4 +83,58 @@ public class TrainerReviewServiceImpl implements TrainerReviewService {
 
         trainerReviewRepository.delete(review);
     }
+
+    @Override
+    public void createTestReviewData() {
+        // 기존 트레이너와 멤버 조회
+        List<Trainer> trainers = trainerRepository.findAll();
+        List<Member> members = memberRepository.findAll();
+
+        if (trainers.isEmpty() || members.isEmpty()) {
+            throw new IllegalStateException("트레이너 또는 회원 데이터가 없습니다. 먼저 기본 데이터를 생성해주세요.");
+        }
+
+        // 다양한 리뷰 댓글과 점수 배열
+        String[] reviewComments = {
+            "정말 친절하고 운동 지도를 잘해주세요! 추천합니다.",
+            "체계적인 운동 계획으로 목표를 달성할 수 있었어요.",
+            "전문적인 지식과 경험이 풍부한 트레이너입니다.",
+            "운동이 재미있어졌어요. 감사합니다!",
+            "PT 받은 후 확실히 실력이 늘었습니다.",
+            "꼼꼼하게 자세 교정도 해주시고 만족해요.",
+            "운동 초보자도 쉽게 따라할 수 있도록 도와주셔서 좋았습니다.",
+            "멘탈도 관리해주시면서 운동 동기부여가 되었어요.",
+            "개인 맞춤형 운동으로 효과를 확실히 봤습니다.",
+            "다음에도 또 PT 받고 싶어요!"
+        };
+        
+        double[] scores = {4.5, 5.0, 4.0, 4.8, 5.0, 4.2, 4.7, 4.9, 4.6, 5.0};
+
+        // 각 트레이너에 대해 3-5개의 리뷰 생성
+        for (Trainer trainer : trainers) {
+            int reviewCount = 3 + (int)(Math.random() * 3); // 3-5개
+            
+            for (int i = 0; i < reviewCount; i++) {
+                Member randomMember = members.get((int)(Math.random() * members.size()));
+                String comment = reviewComments[i % reviewComments.length];
+                double score = scores[i % scores.length];
+                
+                // 중복 리뷰 확인 (같은 트레이너에 같은 사용자가 리뷰를 남기지 않도록)
+                boolean exists = trainerReviewRepository.findByTrainer_TrainerNo(trainer.getTrainerNo())
+                    .stream()
+                    .anyMatch(review -> review.getWriter().getMemberNo().equals(randomMember.getMemberNo()));
+                
+                if (!exists) {
+                    TrainerReview review = TrainerReview.builder()
+                        .trainer(trainer)
+                        .writer(randomMember)
+                        .score(score)
+                        .comment(comment)
+                        .build();
+                    
+                    trainerReviewRepository.save(review);
+                }
+            }
+        }
+    }
 }

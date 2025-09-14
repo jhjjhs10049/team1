@@ -34,10 +34,12 @@ public interface BoardService {
     void increaseViewCount(Long boardId);
     
     // 공지사항 생성 (관리자/매니저만 가능)
-    Long createNotice(Long writerId, String title, String content, List<String> imageFileNames);
+    Long createNotice(Long writerId, String title, String content, List<String> imageFileNames,
+                     Double locationLat, Double locationLng, String locationAddress);
     
     // 광고 생성 (관리자/매니저만 가능)
-    Long createAd(Long writerId, String title, String content, List<String> imageFileNames);
+    Long createAd(Long writerId, String title, String content, List<String> imageFileNames,
+                 Double locationLat, Double locationLng, String locationAddress);
     
     // 공지사항 목록 조회
     List<Board> getNotices();

@@ -1,4 +1,5 @@
 import jwtAxios from "../../member/util/JWTUtil";
+import { dateTimeUtils } from "../../../common/utils/dateTimeUtils";
 
 // ----- Routines -----
 export const fetchRoutines = () =>
@@ -17,66 +18,8 @@ export const deleteRoutine = (routineNo) =>
   jwtAxios.delete(`/api/routines/${routineNo}`).then((res) => res.data);
 
 // ----- Schedules -----
-const toISODate = (d) => {
-  if (!d) return null;
-
-  // Date 객체인 경우
-  if (d instanceof Date) {
-    return d.toISOString().slice(0, 10);
-  }
-
-  // 문자열인 경우
-  if (typeof d === "string") {
-    // 이미 YYYY-MM-DD 형식인지 확인
-    if (/^\d{4}-\d{2}-\d{2}$/.test(d)) {
-      return d;
-    }
-    // 다른 형식의 문자열이면 Date로 변환
-    const date = new Date(d);
-    if (!isNaN(date.getTime())) {
-      return date.toISOString().slice(0, 10);
-    }
-  }
-
-  // 배열이나 객체인 경우 오류 발생
-  if (Array.isArray(d) || typeof d === "object") {
-    console.error("Invalid date parameter: received array or object", d);
-    throw new Error(
-      `Invalid date parameter: expected string or Date, got ${typeof d}`
-    );
-  }
-
-  // 그 외의 경우 문자열로 변환 시도
-  return String(d);
-};
-
-const toISODateTime = (d) => {
-  if (!d) return null;
-
-  // Date 객체인 경우
-  if (d instanceof Date) {
-    return d.toISOString();
-  }
-
-  // 문자열인 경우
-  if (typeof d === "string") {
-    const date = new Date(d);
-    if (!isNaN(date.getTime())) {
-      return date.toISOString();
-    }
-    return d; // 이미 ISO 형식이라 가정
-  }
-
-  // 배열이나 객체인 경우 오류 발생
-  if (Array.isArray(d) || typeof d === "object") {
-    console.error("Invalid datetime parameter: received array or object", d);
-    throw new Error(
-      `Invalid datetime parameter: expected string or Date, got ${typeof d}`
-    );
-  }
-
-  return String(d);
-};
+const toISODate = dateTimeUtils.toDateString;
+const toISODateTime = dateTimeUtils.toLocalISODateTime;
 
 export const fetchSchedulesByDate = (date) => {
   const d = toISODate(date);

@@ -62,13 +62,19 @@ const useMultChatExit = (roomInfo, username, navigate) => {
 
             console.log("✅ 채팅방 나가기 완료");
 
-            // localStorage에서 입장 기록 삭제 (다음 입장 시 다시 알림이 나오도록)
+            // localStorage에서 입장 기록 삭제하고 "실제 나감" 플래그 설정
             if (loginState?.memberNo) {
                 const joinedRoomsKey = `multchat_joined_rooms_${loginState.memberNo}`;
                 const joinedRooms = JSON.parse(localStorage.getItem(joinedRoomsKey) || '{}');
-                delete joinedRooms[roomInfo.no];
+
+                // 실제 나감 플래그 설정 (다음 접속 시 자동 재입장 방지)
+                joinedRooms[roomInfo.no] = {
+                    ...joinedRooms[roomInfo.no],
+                    reallyLeft: true,
+                    leftAt: new Date().toISOString()
+                };
                 localStorage.setItem(joinedRoomsKey, JSON.stringify(joinedRooms));
-                console.log("🗑️ 채팅방 입장 기록 삭제:", roomInfo.no);
+                console.log("� 실제 나감 플래그 설정:", roomInfo.no);
             }
 
             // 성공 메시지 표시

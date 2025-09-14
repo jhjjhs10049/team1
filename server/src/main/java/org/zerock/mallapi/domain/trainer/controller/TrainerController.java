@@ -65,4 +65,13 @@ public class TrainerController {
         trainerReviewService.deleteReview(reviewNo, memberNo);
         return ResponseEntity.noContent().build();
     }
+
+    // 테스트용 리뷰 데이터 생성
+    @PostMapping("/test-review-data")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    public ResponseEntity<String> createTestReviewData() {
+        log.info("트레이너 리뷰 테스트 데이터 생성");
+        trainerReviewService.createTestReviewData();
+        return ResponseEntity.ok("트레이너 리뷰 테스트 데이터가 생성되었습니다.");
+    }
 }

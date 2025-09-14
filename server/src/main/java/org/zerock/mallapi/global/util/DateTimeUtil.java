@@ -13,7 +13,7 @@ public class DateTimeUtil {
     /**
      * 프로젝트 전체에서 사용할 날짜 시간 패턴 상수
      */
-    public static final String DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
+    public static final String DATE_TIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
     
     /**
      * 한국 시간대 상수

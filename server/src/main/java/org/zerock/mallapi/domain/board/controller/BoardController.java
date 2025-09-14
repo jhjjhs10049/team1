@@ -218,7 +218,8 @@ public class BoardController {        private final BoardService boardService;
                 }
         }
           // 공지사항 생성 - 관리자/매니저만 가능
-        public record CreateNoticeRequest(String title, String content, List<String> images, String type) {
+        public record CreateNoticeRequest(String title, String content, List<String> images, String type, 
+                                        Double locationLat, Double locationLng, String locationAddress) {
         }
         
         @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
@@ -240,13 +241,19 @@ public class BoardController {        private final BoardService boardService;
                                         writerId,
                                         req.title(),
                                         req.content(),
-                                        req.images() == null ? List.of() : req.images());
+                                        req.images() == null ? List.of() : req.images(),
+                                        req.locationLat(),
+                                        req.locationLng(),
+                                        req.locationAddress());
                 } else {
                         id = boardService.createNotice(
                                         writerId,
                                         req.title(),
                                         req.content(),
-                                        req.images() == null ? List.of() : req.images());
+                                        req.images() == null ? List.of() : req.images(),
+                                        req.locationLat(),
+                                        req.locationLng(),
+                                        req.locationAddress());
                 }
                 
                 log.info("=== 공지/광고 생성 완료, ID: {}, 타입: {} ===", id, req.type());

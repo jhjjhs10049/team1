@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Modal from "./Modal";
+import { dateTimeUtils } from "../../../common/utils/dateTimeUtils.jsx";
 
 const COLOR_OPTIONS = [
   { label: "파랑", value: "bg-blue-500" },
@@ -33,14 +34,26 @@ const ScheduleCreateModal = ({ dateISO, onClose, onCreate }) => {
       return alert("시간 형식이 올바르지 않습니다. (HH:MM)");
     }
 
-    // ISO 형식으로 시간 변환
+    // 로컬 시간대 기준으로 ISO 형식 변환
     const startDateTime = new Date(`${form.date}T${form.startClock}:00`);
     const endDateTime = new Date(`${form.date}T${form.endClock}:00`);
+
+    // 안전한 로컬 ISO 문자열 변환
+    const formatSafeLocalISO = (date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+    };
+
     const item = {
       date: form.date, // 선택된 날짜
       title: form.title.trim(),
-      startTime: startDateTime.toISOString(),
-      endTime: endDateTime.toISOString(),
+      startTime: formatSafeLocalISO(startDateTime),
+      endTime: formatSafeLocalISO(endDateTime),
       gym: form.gym.trim() || "미정",
       trainerName: form.trainer.trim() || null, // trainer -> trainerName으로 변경
       color: form.color,

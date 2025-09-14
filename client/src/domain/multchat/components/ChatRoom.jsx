@@ -16,9 +16,10 @@ const ChatRoom = ({ onLeave }) => {
     participantCount,
     isWebSocketConnected,
     participants,
+    // hasLeftRoom, // 실제 나감 상태 (사용 안 함)
     loadMoreMessages,
     sendMessage,
-    handleLeave,
+    // handleRejoin, // 다시 입장 함수 (사용 안 함)
   } = useChatRoomLogic();
 
   const { isMobile, showSidebar, setShowSidebar } = useResponsive();
@@ -33,6 +34,8 @@ const ChatRoom = ({ onLeave }) => {
       </div>
     );
   }
+
+  // 재입장 모달 제거: hasLeftRoom UI를 완전히 숨김
   return (
     <div
       className={`${isMobile ? "h-screen flex flex-col" : "max-w-7xl mx-auto px-4 py-6"

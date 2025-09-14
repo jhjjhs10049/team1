@@ -103,20 +103,30 @@ public class MultChatWebSocketController {
             log.info("사용자 {}님이 채팅방 {}에 입장 - 새 사용자: {}, 현재 온라인: {}명", 
                      finalNickname, roomNo, wasNewUser, roomManager.getOnlineUserCount(roomNo));
 
-            // ✅ 개선: 재입장하는 사용자에게도 입장 메시지 표시 (세션 지속성으로 인한 재입장 고려)
-            // 입장 시스템 메시지 생성 및 브로드캐스트
-            MultChatMessageDTO joinMessage = messageHandler.handleSystemMessage(
-                roomNo, finalNickname + "님이 채팅방에 입장했습니다.", "JOIN", finalNickname
-            );
-            notificationService.broadcastMessage(roomNo, joinMessage);
+            // ✅ 개선: 새 사용자만 입장 메시지 표시 (임시퇴장 후 재입장 시 메시지 중복 방지)
+            if (wasNewUser) {
+                // 새 사용자 입장 시스템 메시지 생성 및 브로드캐스트
+                MultChatMessageDTO joinMessage = messageHandler.handleSystemMessage(
+                    roomNo, finalNickname + "님이 채팅방에 입장했습니다.", "JOIN", finalNickname
+                );
+                notificationService.broadcastMessage(roomNo, joinMessage);
+                log.info("새 사용자 입장 메시지 전송: {}", finalNickname);
+            } else {
+                // 기존 사용자 재입장 (임시퇴장 후 복귀) - 메시지 없이 온라인 상태만 업데이트
+                log.info("기존 사용자 재입장 (임시퇴장 후 복귀): {} - 시스템 메시지 생략", finalNickname);
+            }
             
-            // 사용자 목록 업데이트 알림 전송
+            // 사용자 목록 업데이트 알림 전송 (항상 실행)
             List<String> onlineUsers = List.copyOf(roomManager.getOnlineUsers(roomNo));
             List<Map<String, Object>> participantList = roomManager.getParticipantList(roomNo);
             notificationService.sendUserListUpdate(roomNo, onlineUsers, participantList);
 
-            log.info("단체채팅방 입장 완료 - 방번호: {}, 현재 온라인: {}명", 
-                     roomNo, roomManager.getOnlineUserCount(roomNo));
+            // 🆕 채팅방 목록용 전체 참가자 수 업데이트 (임시퇴장 포함)
+            int totalParticipants = roomManager.getTotalParticipantCount(roomNo);
+            notificationService.sendParticipantCountUpdate(roomNo, totalParticipants);
+
+            log.info("단체채팅방 입장 완료 - 방번호: {}, 현재 온라인: {}명, 전체 참가자: {}명", 
+                     roomNo, roomManager.getOnlineUserCount(roomNo), totalParticipants);
 
         } catch (Exception e) {
             log.error("단체채팅방 입장 처리 중 오류 발생", e);
@@ -153,7 +163,16 @@ public class MultChatWebSocketController {
                 String finalNickname = userService.determineFinalNickname(memberDTO, message.getSenderNickname());
                 log.info("🔍 [DEBUG] 최종 닉네임: {}", finalNickname);
                 
-                // 웹소켓 메모리에서 사용자 제거
+                // 1. DB에서 실제 나가기 처리 (채팅방 참가자 제거)
+                try {
+                    chatRoomService.leaveChatRoom(roomNo, memberDTO.getMemberNo());
+                    log.info("✅ DB에서 채팅방 나가기 완료 - 방번호: {}, 회원번호: {}", roomNo, memberDTO.getMemberNo());
+                } catch (Exception dbError) {
+                    log.error("❌ DB 채팅방 나가기 실패 - 방번호: {}, 회원번호: {}", roomNo, memberDTO.getMemberNo(), dbError);
+                    // DB 오류가 있어도 웹소켓 메모리에서는 제거하여 일관성 유지
+                }
+                
+                // 2. 웹소켓 메모리에서 사용자 제거
                 boolean removed = roomManager.removeUserFromRoom(roomNo, finalNickname);
                 log.info("🔍 [DEBUG] removeUserFromRoom 결과: {}", removed);
                 
@@ -183,39 +202,10 @@ public class MultChatWebSocketController {
                     
                     // 🆕 글로벌 채팅방 리스트 업데이트 알림 전송 (나가기로 인한 참가자 수 변경)
                     log.info("🔍 [DEBUG] 글로벌 채팅방 리스트 업데이트 알림 전송 시작");
-                    notificationService.sendParticipantCountUpdate(roomNo, roomManager.getOnlineUserCount(roomNo));
-                    log.info("🔍 [DEBUG] 글로벌 채팅방 리스트 업데이트 알림 전송 완료");
+                    int totalParticipants = roomManager.getTotalParticipantCount(roomNo);
+                    notificationService.sendParticipantCountUpdate(roomNo, totalParticipants);
+                    log.info("🔍 [DEBUG] 글로벌 채팅방 리스트 업데이트 알림 전송 완료 - 전체 참가자: {}명", totalParticipants);
                     
-                    // 🏠 방장 나가기 처리: 방장이 나가면 방을 비활성화
-                    try {
-                        boolean isRoomOwner = chatRoomService.isRoomOwner(roomNo, memberDTO.getMemberNo());
-                        if (isRoomOwner) {
-                            log.info("👑 방장 {}님이 채팅방 {}에서 나감 - 방 비활성화 처리 시작", finalNickname, roomNo);
-                            
-                            // 방 비활성화
-                            chatRoomService.deactivateRoom(roomNo);
-                            
-                            // 방 삭제 시스템 메시지 브로드캐스트
-                            MultChatMessageDTO roomDeleteMessage = messageHandler.handleSystemMessage(
-                                roomNo, "방장이 나가서 채팅방이 삭제되었습니다.", "ROOM_DELETED", finalNickname
-                            );
-                            notificationService.broadcastMessage(roomNo, roomDeleteMessage);
-                            
-                            // 방 삭제 알림을 글로벌로 전송 (채팅방 리스트에서 제거하기 위해)
-                            Map<String, Object> roomDeleteData = Map.of(
-                                "roomNo", roomNo,
-                                "roomName", "삭제된 방",
-                                "reason", "방장 나가기",
-                                "deletedAt", System.currentTimeMillis()
-                            );
-                            notificationService.sendRoomListUpdate("ROOM_DELETED", roomNo, roomDeleteData);
-                            log.info("📤 방 삭제 글로벌 알림 전송 완료 - 방번호: {}", roomNo);
-                            
-                            log.info("👑 방장 나가기로 인한 채팅방 {} 비활성화 완료", roomNo);
-                        }
-                    } catch (Exception roomDeleteError) {
-                        log.error("방장 나가기 처리 중 오류 발생", roomDeleteError);
-                    }
                 } else {
                     log.warn("🔍 [DEBUG] 사용자 제거 실패 - 사용자가 이미 제거되었거나 존재하지 않음");
                 }
@@ -242,18 +232,26 @@ public class MultChatWebSocketController {
         Long roomNo = (Long) headerAccessor.getSessionAttributes().get("roomNo");
 
         if (username != null && roomNo != null) {
-            log.info("사용자 연결 일시 끊어짐 - 사용자: {}, 방번호: {} (채팅방 소속 유지)", username, roomNo);
+            log.info("사용자 연결 일시 끊어짐 - 사용자: {}, 방번호: {} (임시퇴장 처리)", username, roomNo);
             
-            // ✅ 개선: 연결 끊김으로 인한 자동 제거 비활성화
-            // 사용자는 여전히 채팅방에 소속되어 있고, 재연결 시 자동으로 복구됨
-            
-            // 참가자 상태 확인만 수행하고 제거하지 않음
-            boolean userExists = roomManager.isUserInRoom(roomNo, username);
-            if (userExists) {
-                log.info("사용자 {}는 여전히 채팅방 {}에 소속됨 - 재연결 대기 중", username, roomNo);
+            // ✅ 임시퇴장 처리: roomUsers에서만 제거하고 userDetails는 유지
+            boolean disconnected = roomManager.disconnectUserFromRoom(roomNo, username);
+            if (disconnected) {
+                log.info("사용자 {}님 임시퇴장 처리 완료 - 참가자 목록에는 유지됨", username);
+                
+                // 참가자 목록 업데이트 알림 전송 (임시퇴장 상태 반영)
+                List<String> onlineUsers = List.copyOf(roomManager.getOnlineUsers(roomNo));
+                List<Map<String, Object>> participantList = roomManager.getParticipantList(roomNo);
+                notificationService.sendUserListUpdate(roomNo, onlineUsers, participantList);
+                
+                // 채팅방 목록 전체 참가자 수는 변경되지 않음 (임시퇴장이므로)
+                int totalParticipants = roomManager.getTotalParticipantCount(roomNo);
+                notificationService.sendParticipantCountUpdate(roomNo, totalParticipants);
+                
+                log.info("임시퇴장 알림 전송 완료 - 온라인: {}명, 전체: {}명", onlineUsers.size(), totalParticipants);
             }
             
-            log.info("연결 끊김 처리 완료 - 사용자 세션 유지: {}", username);
+            log.info("임시퇴장 처리 완료 - 사용자 정보 유지: {}", username);
         }
     }
 

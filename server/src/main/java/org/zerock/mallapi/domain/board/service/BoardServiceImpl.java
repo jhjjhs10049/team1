@@ -199,7 +199,8 @@ public class BoardServiceImpl implements BoardService {
         }
     }
       @Override
-    public Long createNotice(Long writerId, String title, String content, List<String> imageFileNames) {
+    public Long createNotice(Long writerId, String title, String content, List<String> imageFileNames,
+                           Double locationLat, Double locationLng, String locationAddress) {
         Member writer = memberRepository.findById(writerId)
                 .orElseThrow(() -> new IllegalArgumentException("작성자(Member)가 없습니다. id=" + writerId));
 
@@ -208,6 +209,9 @@ public class BoardServiceImpl implements BoardService {
                 .title(title)
                 .content(content)
                 .postType(Board.PostType.ANN)  // 공지사항으로 설정
+                .locationLat(locationLat)
+                .locationLng(locationLng)
+                .locationAddress(locationAddress)
                 .build();
 
         Board saved = boardRepository.save(board);
@@ -227,7 +231,8 @@ public class BoardServiceImpl implements BoardService {
     }
     
     @Override
-    public Long createAd(Long writerId, String title, String content, List<String> imageFileNames) {
+    public Long createAd(Long writerId, String title, String content, List<String> imageFileNames,
+                        Double locationLat, Double locationLng, String locationAddress) {
         Member writer = memberRepository.findById(writerId)
                 .orElseThrow(() -> new IllegalArgumentException("작성자(Member)가 없습니다. id=" + writerId));
 
@@ -236,6 +241,9 @@ public class BoardServiceImpl implements BoardService {
                 .title(title)
                 .content(content)
                 .postType(Board.PostType.AD)  // 광고로 설정
+                .locationLat(locationLat)
+                .locationLng(locationLng)
+                .locationAddress(locationAddress)
                 .build();
 
         Board saved = boardRepository.save(board);

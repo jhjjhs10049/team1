@@ -547,4 +547,9 @@ public class MultChatRoomServiceImpl implements MultChatRoomService {
         
         log.info("방 비활성화 완료 - 방번호: {}, 참가자 수: {}", roomNo, participants.size());
     }
+    
+    @Override
+    public boolean isUserParticipating(Long roomNo, Long memberNo) {
+        return participantRepository.isParticipating(roomNo, memberNo);
+    }
 }

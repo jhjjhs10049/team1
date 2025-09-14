@@ -48,9 +48,9 @@ const DailyScheduleList = ({ dateISO, items, onEdit, onDelete, onAdd }) => {
         </div>
       ) : (
         <div className="space-y-3">
-          {items.map((s) => (
+          {items.map((s, index) => (
             <div
-              key={s.id}
+              key={s.id || s.scheduleNo || `schedule-${index}`}
               className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow duration-200"
             >
               <div className="flex items-center gap-3 mb-2">

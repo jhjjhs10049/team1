@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useParams } from "react-router-dom";
 import useMultChatWebSocket from "./useMultChatWebSocket";
 import useCustomLogin from "../../member/login/hooks/useCustomLogin";
@@ -17,6 +17,8 @@ const useChatRoomLogic = () => {
   // 기본 상태
   const [roomInfo, setLocalRoomInfo] = useState(null);
   const [loading, setLoading] = useState(true);
+  // const [hasLeftRoom, setHasLeftRoom] = useState(false); // 재입장 모달 제거로 불필요
+  const hasJoinedRef = useRef(false); // 중복 입장 방지
 
   // 사용자 정보
   const username = useMemo(() => {
@@ -87,72 +89,30 @@ const useChatRoomLogic = () => {
     }
   }, [isWebSocketConnected, roomInfo]);
 
-  // 사용자 입장/퇴장 알림 개선 (처음 입장 시에만 알림)
+  // 웹소켓 연결되면 딱 1번만 입장 알림 (중복 방지)
   useEffect(() => {
-    if (isWebSocketConnected && roomNo && username && loginState) {
-      // localStorage에서 이전 입장 기록 확인
-      const joinedRoomsKey = `multchat_joined_rooms_${loginState.memberNo}`;
-      const joinedRooms = JSON.parse(localStorage.getItem(joinedRoomsKey) || '{}');
-      const isFirstJoin = !joinedRooms[roomNo];
-
-      console.log("🚪 채팅방 입장 상태 확인:", {
-        roomNo,
-        username,
-        isFirstJoin,
-        joinedRooms
-      });
-
-      // 처음 입장하는 경우에만 입장 알림 전송
-      if (isFirstJoin) {
-        console.log("🎉 첫 입장! 입장 알림 전송:", { roomNo, username });
-        notifyUserJoined(roomNo, username);
-
-        // 입장 기록을 localStorage에 저장
-        joinedRooms[roomNo] = {
-          joinedAt: new Date().toISOString(),
-          nickname: username
-        };
-        localStorage.setItem(joinedRoomsKey, JSON.stringify(joinedRooms));
-      } else {
-        console.log("🔄 재입장 - 입장 알림 생략:", { roomNo, username });
-      }
-
-      // 서버 응답 확인용 타이머 (디버깅)
-      setTimeout(() => {
-        if (participants.length === 0) {
-          console.log(
-            "⚠️ 1초 후에도 참가자 목록이 비어있음 - 서버 응답 확인 필요"
-          );
-          console.log("🔧 현재 사용자:", {
-            username,
-            memberNo: loginState?.memberNo,
-            loginState: loginState,
-          });
-        }
-      }, 1000);
+    if (
+      !hasJoinedRef.current &&
+      isWebSocketConnected &&
+      roomNo &&
+      loginState?.memberNo &&
+      username
+    ) {
+      console.log("🔄 채팅방 자동 입장:", { roomNo, username });
+      notifyUserJoined(roomNo, username);
+      hasJoinedRef.current = true;
     }
-    return () => {
-      // 🚫 나가기 버튼을 누르지 않는 한 채팅방 소속 유지
-      // 브라우저 종료/새로고침/페이지 이동 시에도 채팅방에서 나가지 않음
-      console.log("🔄 채팅방 Hook cleanup - 채팅방 소속 유지");
-    };
-  }, [
-    isWebSocketConnected,
-    roomNo,
-    username,
-    notifyUserJoined,
-    loginState?.memberNo,
-  ]);
+  }, [isWebSocketConnected, roomNo, loginState?.memberNo, username, notifyUserJoined]);
 
-  // � 브라우저 종료/새로고침 시에도 채팅방 소속 유지
-  // (이전의 beforeunload 이벤트 제거)
+  // 방 번호 또는 로그인 사용자가 바뀌면 재입장 가능하도록 가드 초기화
+  useEffect(() => {
+    hasJoinedRef.current = false;
+  }, [roomNo, loginState?.memberNo]);
 
-  // 🚫 자동 나가기 로직 완전 차단 - 나가기 버튼을 누르지 않는 한 절대 나가지 않음
-  const handleLeave = (onLeave) => {
-    console.log("🚫 자동 나가기 차단 - 나가기 버튼을 누르지 않는 한 절대 나가지 않습니다.");
-    // 어떤 콜백도 실행하지 않음 - 완전 차단
-  };
+  // 임시 퇴장 허용: 언마운트/새로고침 시에는 퇴장하지 않음 (멤버십 유지)
+  // 명시적 나가기 버튼을 누를 때에만 notifyUserLeft를 사용하도록 유지
 
+  // 다시 입장하기 함수 (서버 API 기반)
   // 메시지 전송 (로컬 추가 콜백 포함)
   const handleSendMessage = (messageContent) => {
     sendMessage(messageContent, (localMessage) => {
@@ -184,7 +144,6 @@ const useChatRoomLogic = () => {
     // 함수들
     loadMoreMessages,
     sendMessage: handleSendMessage,
-    handleLeave,
   };
 };
 

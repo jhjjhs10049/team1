@@ -177,12 +177,18 @@ export const createNotice = async ({
   content,
   images,
   type = "ANN",
+  locationLat,
+  locationLng,
+  locationAddress,
 }) => {
   const res = await jwtAxios.post(`${host}/notice`, {
     title,
     content,
     images,
     type,
+    locationLat,
+    locationLng,
+    locationAddress,
   });
   return res.data; // 성공 시 201 Created
 };

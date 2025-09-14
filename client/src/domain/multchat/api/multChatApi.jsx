@@ -155,6 +155,12 @@ export const changeParticipantRole = async (roomNo, targetMemberNo, role) => {
   return res.data;
 };
 
+// 채팅방 참가 상태 확인
+export const getParticipationStatus = async (roomNo) => {
+  const res = await jwtAxios.get(`${prefix}/rooms/${roomNo}/participation-status`);
+  return res.data;
+};
+
 // multChatApi 객체로 묶어서 export
 export const multChatApi = {
   // 채팅방 관리
@@ -177,8 +183,12 @@ export const multChatApi = {
   getUnreadMessageCount,
   markMessagesAsRead,
   deleteMessage,
+
   // 참가자 관리
   getChatRoomParticipants,
   kickParticipant,
   changeParticipantRole,
+
+  // 참가 상태 확인
+  getParticipationStatus,
 };
